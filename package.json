@@ -1,0 +1,11 @@
+{
+  "name": "emojive-backend",
+  "version": "0.0.1",
+  "description": "Backend for emojive, the emoji based chat room",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Thomas Young",
+  "license": "ISC"
+}
