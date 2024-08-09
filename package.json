@@ -2,8 +2,10 @@
   "name": "emojive-backend",
   "version": "0.0.1",
   "description": "Backend for emojive, the emoji based chat room",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "start": "node --env-file .env dist/index.js",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Thomas Young",
@@ -13,6 +15,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.1.0",
+    "@types/ws": "^8.5.12",
     "typescript": "^5.5.4"
   }
 }
