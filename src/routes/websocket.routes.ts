@@ -1,42 +1,47 @@
-import http from 'node:http';
-import WebSocket from "ws";
-import chatHandlers from '../controllers/chat.controller';
-import { AppContext } from '../types/app.types';
-import { eventControllerWithAppContext } from '../types/websocket.types';
+import WebSocket, { WebSocketServer } from "ws";
 
-const appContext: AppContext = {
+import chatHandlers from "../controllers/websocketControllers/chat.controller";
+import { AppContext } from "../types/app.types";
+import { EventControllerWithAppContext } from "../types/websocket.types";
+
+let appContext: AppContext = {
     allWebSockets: []
 }
 
-const httpServer = http.createServer(function createServer(req: http.IncomingMessage, res: http.ServerResponse) {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end();
-});
+/**
+ * Maps routing for various websocket events for a given WebSocket Server
+ * @param {WebSocketServer} wss - The target websocket server to register events to
+ */
+function registerWebSocketEvents(wss: WebSocketServer): void {
+    wss.on('connection', (ws: WebSocket) => {
+        const eventHandlers: Map<string, EventControllerWithAppContext>[] = [
+            chatHandlers
+        ]
 
-const webSocketServer = new WebSocket.Server({ server: httpServer });
+        /**
+         * TODO: Check if you can set the client id here so that it doesn't need to be sent with every websocket message
+         * Or could be used to confirm messages?
+         */
 
-webSocketServer.on('connection', (ws: WebSocket) => {
-    const eventHandlers: Map<string, eventControllerWithAppContext>[] = [
-        chatHandlers
-    ]
-
-    for (const controller of eventHandlers) {
-        for (const [event, eventController] of controller.entries()) {
-            function callEventControllerWithAppContext(...args: any[]) { eventController(ws, appContext, ...args) }
-            ws.on(event, callEventControllerWithAppContext);
+        for (const controller of eventHandlers) {
+            for (const [event, eventController] of controller.entries()) {
+                function callEventControllerWithAppContext(...args: any[]) {
+                    eventController(ws, appContext, ...args)
+                }
+                ws.on(event, callEventControllerWithAppContext);
+            }
         }
-    }
 
-    appContext.allWebSockets.push(ws);
-});
+        appContext.allWebSockets.push(ws);
+    });
 
-webSocketServer.on('error', (ws: WebSocket, error: Error) => {
-    console.log("Error Occurred: ", error)
-});
+    wss.on('error', (ws: WebSocket, error: Error) => {
+        console.log("Error Occurred: ", error)
+        ws.close();
+    });
+}
 
 export {
-    AppContext,
-    eventControllerWithAppContext,
-    httpServer
+    registerWebSocketEvents
 };
 

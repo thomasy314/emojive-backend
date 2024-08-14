@@ -1,13 +1,15 @@
 import WebSocket from "ws";
-import { AppContext, eventControllerWithAppContext } from "../routes/websocket.routes";
-import { webSocketCloseCode } from "../routes/webSocketCloseCode";
-import { assertIncomingChat, IncomingChat, OutgoingChat } from "../types/chat.types";
-import { isValidJson } from "../utils/jsonValidator";
+
+import { webSocketCloseCode } from "../../routes/webSocketCloseCode";
+import { AppContext } from "../../types/app.types";
+import { assertIncomingChat, IncomingChat, OutgoingChat } from "../../types/chat.types";
+import { EventControllerWithAppContext } from "../../types/websocket.types";
+import { isValidJson } from "../../utils/jsonValidator";
 
 /**
  * map of handlers for various websocket events
  */
-const chatHandlers: Map<string, eventControllerWithAppContext> = new Map(Object.entries({
+const chatHandlers: Map<string, EventControllerWithAppContext> = new Map(Object.entries({
     'message': broadCastMessage
 }));
 

@@ -1,4 +1,3 @@
-
 /**
  * Close Codes defined in RFC 6455 
  * https://www.rfc-editor.org/rfc/rfc6455.html#section-7.1.5

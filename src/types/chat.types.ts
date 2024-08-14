@@ -1,15 +1,12 @@
 
-/**
- * Type defining what should be included in websocket chat data
- */
 type IncomingChat = {
-    message: string
+    message: string,
 }
 
 /**
  * Given an incoming chat object, assertIncomingChat confirms if 
  * the object contains the required fields of the IncomingChat type 
- * @param {IncomingChat} incomingChat incoming chat data that needs to be confirmed to be a proper IncomingChat type
+ * @param {IncomingChat} incomingChat - Incoming chat data that needs to be confirmed to be a proper IncomingChat type
  * @returns {boolean} 
  */
 function assertIncomingChat(incomingChat: IncomingChat): boolean {
@@ -19,7 +16,7 @@ function assertIncomingChat(incomingChat: IncomingChat): boolean {
 }
 
 type OutgoingChat = {
-    message: string
+    message: string,
 }
 
 export {
