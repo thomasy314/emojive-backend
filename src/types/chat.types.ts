@@ -1,6 +1,7 @@
 
 type IncomingChat = {
     message: string,
+    clientId: string
 }
 
 /**
@@ -10,13 +11,14 @@ type IncomingChat = {
  * @returns {boolean} 
  */
 function assertIncomingChat(incomingChat: IncomingChat): boolean {
-    if (!incomingChat.message) return false;
+    if (!incomingChat.message || !incomingChat.clientId) return false;
 
     return true;
 }
 
 type OutgoingChat = {
     message: string,
+    clientId: string
 }
 
 export {

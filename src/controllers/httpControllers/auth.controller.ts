@@ -9,7 +9,10 @@ import { IncomingMessage, ServerResponse } from "http";
  * @param {ServerResponse} res - Object used to respond to handle HTTP request responses
  */
 function authHandler(req: IncomingMessage, res: ServerResponse) {
-    res.writeHead(200, { 'content-type': 'application/json' });
+    res.writeHead(200, {
+        'content-type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+    });
     const clientId: string = randomUUID();
 
     res.write(JSON.stringify({ clientId: clientId }))

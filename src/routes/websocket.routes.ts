@@ -37,7 +37,6 @@ function registerWebSocketEvents(wss: WebSocketServer): void {
 
     wss.on('error', (ws: WebSocket, error: Error) => {
         console.log("Error Occurred: ", error)
-        ws.close();
     });
 }
 

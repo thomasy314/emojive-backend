@@ -35,7 +35,8 @@ function broadCastMessage(senderWs: WebSocket, appContext: AppContext, eventMess
     }
 
     const outgoingMessage: OutgoingChat = {
-        message: incomingChat.message
+        message: incomingChat.message,
+        clientId: incomingChat.clientId
     }
 
     appContext.allWebSockets.forEach((ws: WebSocket) => {
