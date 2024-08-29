@@ -1,0 +1,10 @@
+printf "\n-------------------- linting --------------------\n"
+npm run lint
+
+printf "\n-------------------- formatting --------------------\n"
+npm run format
+
+printf "\n-------------------- building --------------------\n"
+npm run build
+
+printf "\npre-commit success!\n"
