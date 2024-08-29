@@ -1,4 +1,3 @@
-
 # Emojive Backend
 
 Emojive is a unique chat service where communication is exclusively through emojis. Users can either join or create a known chatroom or be randomly paired with another user. The random pairing feature is designed to connect people from different parts of the world, especially those who don't share a common language, fostering a universal and visually expressive form of communication.

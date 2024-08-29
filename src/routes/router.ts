@@ -1,6 +1,5 @@
-
-import express, { Express } from "express";
+import express, { Express } from 'express';
 
 const expressServer: Express = express();
 
-export default expressServer
+export default expressServer;
