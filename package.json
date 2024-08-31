@@ -10,7 +10,8 @@
     "start": "npm run build && node --watch --env-file=.env dist/app.js",
     "build": "rimraf dist && tsc",
     "lint": "npx eslint src/**/*.ts",
-    "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\" \"\" && eslint src/**/*.ts --fix",
+    "format-check": "prettier \"**/*.+(js|ts|json)\" --check",
+    "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\" && eslint src/**/*.ts --fix",
     "prepare": "node -e \"if (process.env.NODE_ENV !== 'production'){process.exit(1)} \" || husky"
   },
   "keywords": [],
