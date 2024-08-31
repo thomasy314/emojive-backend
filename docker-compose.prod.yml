@@ -1,0 +1,11 @@
+services:
+  emojive-api:
+    environment:
+      - IP=${IP}
+      - PORT=${PORT}
+      - NODE_ENV=production
+    build:
+      context: .
+      target: production
+    ports:
+      - ${PORT}:${PORT}

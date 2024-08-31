@@ -1,13 +1,17 @@
 {
   "name": "emojive-backend",
   "version": "0.0.2",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node --env-file=.env dist/app.js",
-    "build": "tsc",
+    "docker-dev": "docker compose -f docker-compose.dev.yml up",
+    "docker-dev-build": "docker compose -f docker-compose.dev.yml up --build",
+    "docker-prod": "docker compose -f docker-compose.prod.yml up --build --detach ; echo Prod Started!",
+    "dev": "npm run build && (tsc -w & node --watch --env-file=.env dist/app.js)",
+    "start": "npm run build && node --watch --env-file=.env dist/app.js",
+    "build": "rimraf dist && tsc",
     "lint": "npx eslint src/**/*.ts",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\" \"\" && eslint src/**/*.ts --fix",
-    "prepare": "husky"
+    "prepare": "node -e \"if (process.env.NODE_ENV !== 'production'){process.exit(1)} \" || husky"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +34,7 @@
   },
   "dependencies": {
     "express": "^4.19.2",
+    "rimraf": "^6.0.1",
     "ws": "^8.18.0"
   }
 }
