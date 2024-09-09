@@ -38,7 +38,6 @@ const config: JestConfigWithTsJest = {
   coverageProvider: 'v8',
 
   // A list of reporter names that Jest uses when writing coverage reports
-  coverageReporters: ['json-summary', 'text'],
   // coverageReporters: [
   //   "json",
   //   "text",

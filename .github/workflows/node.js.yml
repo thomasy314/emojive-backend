@@ -35,9 +35,3 @@ jobs:
 
       - name: 🔍 Testing
         run: npm run test-ci
-
-      - name: ⚙️ Generating coverage badges
-        uses: jpb06/coverage-badges-action@latest
-          with:
-            branches: main
-            badges-icon: jest
