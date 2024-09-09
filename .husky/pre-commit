@@ -10,4 +10,7 @@ npm run build
 printf "\n-------------------- Testing --------------------\n"
 npm run test
 
+printf "\n-------------------- Auditing --------------------\n"
+npm audit
+
 printf "\npre-commit success!\n"
