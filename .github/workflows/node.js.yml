@@ -1,4 +1,4 @@
-name: Node.js Code Quality
+name: ☮️ Node.js Code Quality
 
 on:
   push:
@@ -15,12 +15,29 @@ jobs:
         node-version: [20.17.0]
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run format-check
+
+      - name: ⏳ Installing npm dependencies
+        run: npm ci
+
+      - name: 🧹 Linting
+        run: npm run lint
+
+      - name: 🧾 Checking format
+        run: npm run format-check
+
+      - name: 🔍 Testing
+        run: npm run test-ci
+
+      - name: ⚙️ Generating coverage badges
+        uses: jpb06/coverage-badges-action@latest
+          with:
+            branches: main
+            badges-icon: jest
