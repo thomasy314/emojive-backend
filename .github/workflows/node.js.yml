@@ -26,5 +26,8 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run lint
+<<<<<<< HEAD
       - run: npm run format-check
+=======
+>>>>>>> 1fde21a (Docker compose deploy script to deploy with watchtower)
       - run: npm run build
