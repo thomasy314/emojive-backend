@@ -1,0 +1,9 @@
+services:
+  emojive-api:
+    container_name: emojive-api
+    build:
+      context: .
+      target: dev
+    volumes:
+      - ./:/app
+      - /app/node_modules

@@ -1,0 +1,6 @@
+services:
+  emojive-api:
+    container_name: emojive-api
+    build:
+      context: .
+      target: production
