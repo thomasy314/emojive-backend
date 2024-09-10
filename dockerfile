@@ -12,10 +12,10 @@ CMD ["npm", "run", "dev"]
 
 # Test stage
 FROM dev AS test
-RUN npm run lint && npm run format-check && npm test-ci
+RUN npm run lint && npm run format-check && npm run test-ci
 
 # Production stage
-FROM test AS production
+FROM base AS production
 RUN npm ci --omit=dev
 COPY --from=test /app/dist ./dist
 CMD [ "node", "dist/app.js" ]
