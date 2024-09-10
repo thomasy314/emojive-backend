@@ -2,12 +2,6 @@ services:
   emojive-api:
     image: thomasy314/emojive-backend:latest
     container_name: emojive-api
-    environment:
-      - IP=${IP}
-      - PORT=${PORT}
-      - NODE_ENV=production
-    ports:
-      - ${PORT}:${PORT}
   watchtower:
     image: containrrr/watchtower
     container_name: emojive-watchtower

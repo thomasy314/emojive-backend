@@ -3,18 +3,18 @@
   "version": "0.0.2",
   "main": "app.js",
   "scripts": {
-    "docker-dev": "docker compose -f docker-compose.dev.yml up",
-    "docker-dev-build": "docker compose -f docker-compose.dev.yml up --build",
-    "docker-prod": "docker compose -f docker-compose.prod.yml up --build --detach ; echo Prod Started!",
+    "docker:dev": "docker compose -f compose.core.yml -f compose.dev.yml up",
+    "docker:dev:build": "docker compose -f compose.core.yml -f compose.dev.yml up --build",
+    "docker:prod:build": "docker compose -f compose.core.yml -f compose.prod.build.yml up --build",
+    "docker:prod:deploy": "docker compose -f compose.core.yml -f compose.prod.deploy.yml up",
+    "build": "rimraf dist && tsc",
     "dev": "npm run build && (tsc -w & node --watch --env-file=.env dist/app.js)",
     "start": "npm run build && node --watch --env-file=.env dist/app.js",
-    "build": "rimraf dist && tsc",
     "lint": "npx eslint src/**/*.ts",
-    "format-check": "prettier \"**/*.+(js|ts|json)\" --check",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\" && eslint src/**/*.ts --fix",
-    "prepare": "node -e \"if (process.env.NODE_ENV !== 'production'){process.exit(1)} \" || husky",
+    "format-check": "prettier \"**/*.+(js|ts|json)\" --check",
     "test": "jest --passWithNoTests",
-    "test-ci": "jest --ci --coverage --passWithNoTests"
+    "test-ci": "jest --ci --passWithNoTests"
   },
   "keywords": [],
   "author": "Thomas Young",
@@ -31,7 +31,6 @@
     "@typescript-eslint/parser": "^8.3.0",
     "eslint": "^9.9.1",
     "globals": "^15.9.0",
-    "husky": "^9.1.5",
     "jest": "^29.7.0",
     "prettier": "^3.3.3",
     "ts-jest": "^29.2.5",
@@ -40,7 +39,7 @@
     "typescript-eslint": "^8.3.0"
   },
   "dependencies": {
-    "express": "^4.19.2",
+    "express": "^4.20.0",
     "rimraf": "^6.0.1",
     "ws": "^8.18.0"
   }

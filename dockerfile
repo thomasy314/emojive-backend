@@ -1,27 +1,21 @@
-#Build stage
-FROM node:20.17.0-alpine AS build
-
+# Base Stage
+FROM node:20.17.0-alpine AS base
 WORKDIR /app
+COPY package.json package-lock.json tsconfig.json ./
 
-COPY package.json package.json
-COPY package-lock.json package-lock.json
-
-RUN npm install
-
+# Dev stage
+FROM base AS dev
+RUN npm i
 COPY . .
-
 RUN npm run build
+CMD ["npm", "run", "dev"]
 
-#Production stage
-FROM node:20.17.0-alpine AS production
+# Test stage
+FROM dev AS test
+RUN npm run lint && npm run format-check && npm run test-ci
 
-WORKDIR /app
-
-COPY package.json package.json
-COPY package-lock.json package-lock.json
-
+# Production stage
+FROM base AS production
 RUN npm ci --omit=dev
-
-COPY --from=build /app/dist ./dist
-
+COPY --from=test /app/dist ./dist
 CMD [ "node", "dist/app.js" ]
