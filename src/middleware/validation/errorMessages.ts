@@ -1,10 +1,10 @@
 const VALIDATION_ERRORS = {
-  MIN_LENGTH: 'Must contain at least',
-  MAX_LENGTH: 'Must contain at most',
-  EXACT_LENGTH: `Must be exactly`,
-  TYPE: 'Must be of type',
-  PATTERN: 'Must match pattern',
-  FORMAT: 'Must be of format',
+  MIN_LENGTH: 'must contain at least',
+  MAX_LENGTH: 'must contain at most',
+  EXACT_LENGTH: `must contain exactly`,
+  TYPE: 'must be of type',
+  PATTERN: 'must match pattern',
+  FORMAT: 'must be of format',
 };
 
 export { VALIDATION_ERRORS };

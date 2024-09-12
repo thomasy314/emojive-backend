@@ -5,14 +5,16 @@ function userService() {
     userName: string,
     languages: string[],
     countryCode: string,
-    countryRegion: string
+    countryRegion?: string
   ) {
     // TODO: Add language support
 
     return new Promise((resolve, reject) => {
       createUserQuery(userName, countryCode, countryRegion)
         .then(results => {
-          resolve(results.rows);
+          const response = results.rows[0];
+          delete response.user_id;
+          resolve(response);
         })
         .catch(reject);
     });

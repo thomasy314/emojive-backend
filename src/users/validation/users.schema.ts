@@ -11,23 +11,23 @@ addFormats(ajv);
 ajvErrors(ajv /*,{ singleError: true }*/);
 
 type UserSchema = {
-  user_name: string;
+  userName: string;
   languages: string[];
-  country_code: string;
-  country_region: string;
+  countryCode: string;
+  countryRegion: string;
 };
 
 const userSchema: JSONSchemaType<UserSchema> = {
   type: 'object',
   properties: {
-    user_name: {
+    userName: {
       type: 'string',
       nullable: false,
       minLength: 1,
       maxLength: 10,
       errorMessage: {
         minLength: `${VALIDATION_ERRORS.MIN_LENGTH} 1 character`,
-        maxLength: `${VALIDATION_ERRORS.MAX_LENGTH} 10 characters`,
+        maxLength: `${VALIDATION_ERRORS.MAX_LENGTH} 10 characters - note that emojis can be made up of multiple characters`,
         type: `${VALIDATION_ERRORS.TYPE} String`,
       },
     },
@@ -41,11 +41,11 @@ const userSchema: JSONSchemaType<UserSchema> = {
       maxItems: 10,
       errorMessage: {
         minLength: `${VALIDATION_ERRORS.MIN_LENGTH} 1 language`,
-        maxLength: `${VALIDATION_ERRORS.MIN_LENGTH} 10 languages`,
+        maxLength: `${VALIDATION_ERRORS.MAX_LENGTH} 10 languages`,
         type: `${VALIDATION_ERRORS.TYPE} String[]`,
       },
     },
-    country_code: {
+    countryCode: {
       type: 'string',
       nullable: false,
       minLength: 2,
@@ -56,7 +56,7 @@ const userSchema: JSONSchemaType<UserSchema> = {
         type: `${VALIDATION_ERRORS.TYPE} String`,
       },
     },
-    country_region: {
+    countryRegion: {
       type: 'string',
       minLength: 2,
       maxLength: 2,
@@ -67,7 +67,7 @@ const userSchema: JSONSchemaType<UserSchema> = {
       },
     },
   },
-  required: ['user_name', 'languages', 'country_code'],
+  required: ['userName', 'languages', 'countryCode'],
   additionalProperties: false,
 };
 

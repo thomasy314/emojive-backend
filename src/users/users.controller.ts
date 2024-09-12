@@ -2,13 +2,11 @@ import { RequestHandler } from 'express';
 import userService from './users.service';
 
 function userController() {
-  const createUser: RequestHandler = (req, res, next) => {
-    const { user_name, languages, country_code, country_region } = req.body;
+  const createUser: RequestHandler = (req, res, next): Promise<void> => {
+    const { userName, languages, countryCode, countryRegion } = req.body;
 
-    console.log('creating user');
-
-    userService()
-      .createUser(user_name, languages, country_code, country_region)
+    return userService()
+      .createUser(userName, languages, countryCode, countryRegion)
       .then(result => {
         res.send(JSON.stringify(result));
       })

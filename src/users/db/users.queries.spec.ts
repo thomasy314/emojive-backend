@@ -23,7 +23,8 @@ describe('User Queries', () => {
     jest.clearAllMocks();
   });
 
-  it('Create new user when given proper input', () => {
+  test('GIVEN valid input THEN createUserQuery returns new user UUID', () => {
+    // Setup
     const userUUID = '550e8400-e29b-41d4-a716-446655440000';
 
     mockedPool.query.mockImplementationOnce(
@@ -48,12 +49,14 @@ describe('User Queries', () => {
       }
     );
 
+    // Execute
     const createUserPromise = createUserQuery(
       userName,
       countryCode,
       countryRegion
     );
 
+    // Validate
     createUserPromise.then(finalResponse => {
       expect(finalResponse).toStrictEqual({
         rows: [
