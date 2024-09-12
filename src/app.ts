@@ -1,7 +1,8 @@
-import { routeConfig } from './config/express.config';
+import { httpServerConfig } from './config/express.config';
 import expressServer from './routes/router';
 
-expressServer.listen(routeConfig.PORT, routeConfig.IP, () => {
-  console.log('env: ', process.env.IP);
-  console.log(`Server is running on ${routeConfig.IP}:${routeConfig.PORT}`);
+expressServer.listen(httpServerConfig.PORT, httpServerConfig.IP, () => {
+  console.log(
+    `Server is running on ${httpServerConfig.IP}:${httpServerConfig.PORT}`
+  );
 });
