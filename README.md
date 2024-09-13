@@ -7,4 +7,146 @@ Emojive is a unique chat service where communication is exclusively through emoj
 
 The full initial design doc for Emojive can be found [here](https://orchid-raft-257.notion.site/Emojive-2b8af8f7d1d1465f9149a1baa3523b8e?pvs=4)
 
-Project setup and read me in progress...
+The frontend portion of this project is located in the [emojive-frontend](https://github.com/thomasy314/emojive-frontend) repository.
+
+# Setup
+
+## Environment Variables
+
+| Name              | Description                                     | Default Value |
+| ----------------- | ----------------------------------------------- | ------------- |
+| PORT              | PORT the server listens on                      | `3000`        |
+| IP                | IP the server listens on                        | `localhost`   |
+| POSTGRES_USER     | Username used to connect to PostgreSQL server   |               |
+| POSTGRES_PASSWORD | Password used to connect to PostgreSQL server   |               |
+| POSTGRES_PORT     | Port exposed to API to access PostgreSQL Server |               |
+| POSTGRES_DB       | Name given to Emojive PostreSQL database        |               |
+
+## Prerequisites
+
+- [Docker](https://docs.docker.com/engine/install/) 27
+- Clone this Repo:
+
+```bash
+git clone  https://github.com/thomasy314/emojive-backend.git
+```
+
+### Development
+
+- [Node.js](https://nodejs.org/en/) version 20
+
+## Deployment
+
+To deploy the Emojive Backend service you will only need to build and spin up the prod docker image:
+
+```bash
+npm run docker:prod:deploy
+```
+
+This command will create all the necessary infrastructure and start the server. It will also listen for changes to the [Emojive backend docker registry](https://hub.docker.com/repository/docker/thomasy314/emojive-backend/general) and auto deploy new images using [Watchtower](https://hub.docker.com/repository/docker/thomasy314/emojive-backend/general).
+
+## Development
+
+The following steps will spin up the docker development environment and all necessary infrastructure:
+
+1. Run the following to deploy docker dev environment which hot loads changes:
+
+```bash
+npm run docker:dev
+
+# if you want to force docker to re-build the Emojive image
+
+npm run docker:dev:build
+```
+
+2. Send requests to service: The server will display the ip and port the server is running on. Requests are then ready to be sent to it. Example:
+
+```bash
+# .env
+ IP = localhost
+ PORT = 7000
+ ...
+```
+
+```bash
+# Request
+curl    --location '127.0.0.1:7000/user/create' \
+        --header 'Content-Type: application/json' \
+        --data '{
+            "userName": "👨‍🍳",
+            "languages": ["EN"],
+            "countryCode": "US",
+            "countryRegion": "WA"
+        }'
+```
+
+# Project Structure
+
+The following shows the general folder structure for the project.
+
+```
+📦
+├─ .github
+│  └─ workflows
+├─ src
+│  ├─ config
+│  ├─ db
+│  │  └─ init
+│  ├─ middleware
+│  ├─ routes
+│  └─ [feature]
+│     ├─ db
+│     └─ validation
+|   ...
+```
+
+- `.github/workflow` - contains [Github Actions](https://docs.github.com/en/actions) CI/CD workflows
+- `src` - Files used to build node assets
+  - `config` - Emojive service configuration files
+  - `db` - Feature agnostic files used for db connection, management, querying, etc.
+    - `init` - SQL files that are executed after docker initialized the PostgreSQL database. For example, to create all needed database tables
+  - `middleware` - Feature agnostic middleware features
+  - `routes` - Feature agnostic routing and HTTP/WebSocket server configuration
+  - `[Feature]` - Feature specific files that will organized by feature (i.e. users, chatrooms, messages, etc.)
+
+for more detailed information about file structure see [File Structure Guidelines](docs/file-structure-guidelines.md).
+
+## Current State
+
+### DevOps
+
+- **CI/CD:** Continuous integration and deployment have been setup using [Github Actions](https://docs.github.com/en/actions) and [Docker](https://www.docker.com/)
+  - **Linting:** [ESLint](https://eslint.org/)
+  - **Code Formatting:** [Prettier](https://prettier.io/)
+  - **Unit Testing/Coverage:** [Jest](https://jestjs.io/)
+
+### Infrastructure
+
+- **API Server:** Server which handles incoming HTTP requests
+- **PostgreSQL:** Database which stores data for control plane requests
+
+### APIs
+
+- `/user`
+  - `POST /create` - creates a new user and returns the stored user data along with a generated UUID used for authentication.
+
+<u>**API Handling**</u>
+
+- **Data validation**: [Ajv](https://ajv.js.org/)
+
+## Planned Work
+
+The following is a high level list of items that need implementing, for more detail see [design doc](https://orchid-raft-257.notion.site/Emojive-2b8af8f7d1d1465f9149a1baa3523b8e?pvs=4).
+
+1. Finish Control Plane APIs
+   1. user, chatroom, language, etc. APIs
+   1. Language Tags [RFC 5646](https://datatracker.ietf.org/doc/html/rfc5646)
+   1. Country and Region Codes [ISO 3166](https://www.iso.org/iso-3166-country-codes.html)
+   1. Only Emoji validation
+   1. Authentication Middleware
+1. WebSocket messages
+   1. Sending/Receiving
+   1. Schema
+   1. Kafka messages queue
+   1. MongoDB
+1. Integration Tests
