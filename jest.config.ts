@@ -24,7 +24,6 @@ const config: JestConfigWithTsJest = {
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  //collectCoverageFrom: ['**/*.{ts|js}', '!**/node_modules/**', '!**/dist/**'],
   collectCoverageFrom: [
     'src/**/*.ts',
     // Removing router related files as these are tested in integration tests
