@@ -2,9 +2,19 @@ services:
   emojive-api:
     image: thomasy314/emojive-backend:latest
     container_name: emojive-api
+
   watchtower:
     image: containrrr/watchtower
     container_name: emojive-watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --interval 30 --cleanup emojive-api
+
+  postgres_db:
+    container_name: emojive-db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+    driver: local

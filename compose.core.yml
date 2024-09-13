@@ -4,5 +4,39 @@ services:
     environment:
       - IP=${IP}
       - PORT=${PORT}
+
+      - POSTGRES_HOST=postgres_db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - ${PORT}:${PORT}
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    networks:
+      - postgres_network
+
+  postgres_db:
+    container_name: emojive-db
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      - PGUSER=${POSTGRES_USER}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready']
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./src/db/init:/docker-entrypoint-initdb.d
+    networks:
+      - postgres_network
+
+networks:
+  postgres_network:
+    driver: bridge
