@@ -13,4 +13,11 @@ function createUserQuery(
   return query(queryText, values);
 }
 
-export { createUserQuery };
+function findUserByUUID(userUUID: string): Promise<QueryResult> {
+  const queryText: string = 'SELECT * FROM users WHERE user_uuid=$1';
+  const values: string[] = [userUUID];
+
+  return query(queryText, values);
+}
+
+export { createUserQuery, findUserByUUID };

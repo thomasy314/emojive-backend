@@ -1,20 +1,79 @@
-import { NextFunction, Request, Response } from 'express';
-import { parseErrors } from '../../middleware/validation/ajvErrors';
-import { validateUser } from './users.schema';
+import Ajv, { JSONSchemaType } from 'ajv';
+import ajvErrors from 'ajv-errors';
+import addFormats from 'ajv-formats';
+import { VALIDATION_ERRORS } from '../../middleware/validation/errorMessages';
+import createValidator from '../../middleware/validation/validator';
+const ajv = new Ajv({
+  allErrors: true,
+  verbose: true,
+});
 
-const userValidator = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | null> => {
-  const isValid = validateUser(req.body);
-  if (!isValid && validateUser.errors) {
-    // If schema validation failed and error occurred return with formatted error message
-    const error = await parseErrors(validateUser.errors);
-    return res.status(400).json({ status: 'errors', code: 400, errors: error });
-  }
-  next(); // If no error occurred proceed further
-  return null;
+addFormats(ajv);
+ajvErrors(ajv /*,{ singleError: true }*/);
+
+type UserSchema = {
+  userName: string;
+  languages: string[];
+  countryCode: string;
+  countryRegion: string;
 };
 
-export default userValidator;
+const userSchema: JSONSchemaType<UserSchema> = {
+  type: 'object',
+  properties: {
+    userName: {
+      type: 'string',
+      nullable: false,
+      minLength: 1,
+      maxLength: 10,
+      errorMessage: {
+        minLength: `${VALIDATION_ERRORS.MIN_LENGTH} 1 character`,
+        maxLength: `${VALIDATION_ERRORS.MAX_LENGTH} 10 characters - note that emojis can be made up of multiple characters`,
+        type: `${VALIDATION_ERRORS.TYPE} String`,
+      },
+    },
+    languages: {
+      type: 'array',
+      items: {
+        type: 'string',
+      },
+      nullable: false,
+      minItems: 1,
+      maxItems: 10,
+      errorMessage: {
+        minLength: `${VALIDATION_ERRORS.MIN_LENGTH} 1 language`,
+        maxLength: `${VALIDATION_ERRORS.MAX_LENGTH} 10 languages`,
+        type: `${VALIDATION_ERRORS.TYPE} String[]`,
+      },
+    },
+    countryCode: {
+      type: 'string',
+      nullable: false,
+      minLength: 2,
+      maxLength: 2,
+      errorMessage: {
+        minLength: `${VALIDATION_ERRORS.EXACT_LENGTH} 2 characters`,
+        maxLength: `${VALIDATION_ERRORS.EXACT_LENGTH} 2 characters`,
+        type: `${VALIDATION_ERRORS.TYPE} String`,
+      },
+    },
+    countryRegion: {
+      type: 'string',
+      minLength: 2,
+      maxLength: 2,
+      errorMessage: {
+        minLength: `${VALIDATION_ERRORS.EXACT_LENGTH} 2 characters`,
+        maxLength: `${VALIDATION_ERRORS.EXACT_LENGTH} 2 characters`,
+        type: `${VALIDATION_ERRORS.TYPE} String`,
+      },
+    },
+  },
+  required: ['userName', 'languages', 'countryCode'],
+  additionalProperties: false,
+};
+
+const validateUser = ajv.compile(userSchema);
+
+const userValidator = createValidator(validateUser);
+
+export { userValidator };

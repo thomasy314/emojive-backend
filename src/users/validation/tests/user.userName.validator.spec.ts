@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import userValidator from '../users.validator';
+import { userValidator } from '../users.validator';
 
 const validLanguages = ['EN'];
 const validCountryCode = 'US';
