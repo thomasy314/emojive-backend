@@ -142,7 +142,6 @@ The following is a high level list of items that need implementing, for more det
    1. user, chatroom, language, etc. APIs
    1. Language Tags [RFC 5646](https://datatracker.ietf.org/doc/html/rfc5646)
    1. Country and Region Codes [ISO 3166](https://www.iso.org/iso-3166-country-codes.html)
-   1. Only Emoji validation
 1. WebSocket messages
    1. Sending/Receiving
    1. Schema
