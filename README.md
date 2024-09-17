@@ -49,7 +49,7 @@ This command will create all the necessary infrastructure and start the server. 
 
 The following steps will spin up the docker development environment and all necessary infrastructure:
 
-1. Run the following to deploy docker dev environment which hot loads changes:
+Run the following to deploy docker dev environment which hot loads changes:
 
 ```bash
 npm run docker:dev
@@ -59,17 +59,13 @@ npm run docker:dev
 npm run docker:dev:build
 ```
 
-2. Send requests to service: The server will display the ip and port the server is running on. Requests are then ready to be sent to it. Example:
+## Usage/Auth
+
+On startup, the service will display the IP address and port it is listening on. Before making any further requests, a user UUID must be obtained using the `/user/create` API. This UUID should then be included as the `userUUID` URL parameter in subsequent requests.
+
+Below is an example of creating a user for a server running on `localhost` at port `7000`:
 
 ```bash
-# .env
- IP = localhost
- PORT = 7000
- ...
-```
-
-```bash
-# Request
 curl    --location '127.0.0.1:7000/user/create' \
         --header 'Content-Type: application/json' \
         --data '{
@@ -113,6 +109,10 @@ for more detailed information about file structure see [File Structure Guideline
 
 ## Current State
 
+### Auth
+
+- There is a basic auth which requires clients to create a user and use the returned UUID for future requests.
+
 ### DevOps
 
 - **CI/CD:** Continuous integration and deployment have been setup using [Github Actions](https://docs.github.com/en/actions) and [Docker](https://www.docker.com/)
@@ -143,7 +143,6 @@ The following is a high level list of items that need implementing, for more det
    1. Language Tags [RFC 5646](https://datatracker.ietf.org/doc/html/rfc5646)
    1. Country and Region Codes [ISO 3166](https://www.iso.org/iso-3166-country-codes.html)
    1. Only Emoji validation
-   1. Authentication Middleware
 1. WebSocket messages
    1. Sending/Receiving
    1. Schema
