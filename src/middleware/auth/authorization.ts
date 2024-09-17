@@ -1,27 +1,54 @@
 import { NextFunction, Request, Response } from 'express';
-import { findUserByUUID } from '../../users/db/users.queries';
-import { validateAuthorization } from './authorization.schema';
+import authService from '../../auth/auth.service';
+import { getPathName } from '../../utils/request-url-helpers';
+import { ResponseError } from '../errorHandling/error.types';
+import {
+  AuthorizationSchema,
+  validateAuthorization,
+} from './authorization.schema';
 
-function authorization(req: Request, res: Response, next: NextFunction) {
-  if (typeof req.query.userUUID !== 'string') {
-    return res.sendStatus(401);
+function authorization(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const pathName = getPathName(req.originalUrl);
+
+  if (authService().confirmRouteAuthNeeded(pathName) === false) {
+    next();
+    return Promise.resolve();
   }
 
   const isValid = validateAuthorization(req.query);
   if (!isValid) {
-    return res.sendStatus(401);
+    const err: ResponseError = {
+      status: 401,
+      error: new Error('Not Authorized'),
+    };
+    next(err);
+    return Promise.resolve();
   }
 
-  const userUUID: string = req.query.userUUID;
+  const requestData: AuthorizationSchema = req.query as AuthorizationSchema;
 
-  return findUserByUUID(userUUID)
+  return authService()
+    .authorizeRequest(requestData.userUUID)
     .then(result => {
-      if (result.rows.length !== 1) return res.sendStatus(401);
+      if (result === false) {
+        const err: ResponseError = {
+          status: 401,
+          error: Error('Not Authorized'),
+        };
+        next(err);
+        return;
+      }
+
       next();
     })
     .catch(error => {
-      console.error(error);
-      res.sendStatus(500);
+      console.log('HERE');
+      console.log(error);
+      next(error);
     });
 }
 

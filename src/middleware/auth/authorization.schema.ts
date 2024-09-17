@@ -33,4 +33,4 @@ const authorizationSchema: JSONSchemaType<AuthorizationSchema> = {
 
 const validateAuthorization = ajv.compile(authorizationSchema);
 
-export { validateAuthorization };
+export { AuthorizationSchema, validateAuthorization };

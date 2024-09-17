@@ -1,19 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
-import { userValidator } from '../users.validator';
+import { userValidator } from '../users.schema';
 
 const validUserName = '🦆';
 const validCountryCode = 'US';
 const validCountryRegion = 'CA';
 
 describe('Languages Validation', () => {
-  let response: Response;
+  const response: Response = {} as Response;
   let next: NextFunction;
 
   beforeEach(() => {
-    response = {} as Response;
-    response.json = jest.fn();
-    response.status = jest.fn(() => response);
-
     next = jest.fn();
   });
 
@@ -35,22 +31,19 @@ describe('Languages Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: 'languages',
-          message: "must have required property 'languages'",
-          value: 'languages',
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: 'languages',
+            message: "must have required property 'languages'",
+            value: 'languages',
+          },
+        ],
+      },
     });
   });
 
@@ -69,22 +62,19 @@ describe('Languages Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/languages',
-          message: 'must NOT have fewer than 1 items',
-          value: [],
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/languages',
+            message: 'must NOT have fewer than 1 items',
+            value: [],
+          },
+        ],
+      },
     });
   });
 
@@ -105,22 +95,19 @@ describe('Languages Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/languages',
-          message: 'must NOT have more than 10 items',
-          value: tooLongLanguages,
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/languages',
+            message: 'must NOT have more than 10 items',
+            value: tooLongLanguages,
+          },
+        ],
+      },
     });
   });
 
@@ -139,22 +126,19 @@ describe('Languages Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/languages',
-          message: 'must be of type String[]',
-          value: 7,
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/languages',
+            message: 'must be of type String[]',
+            value: 7,
+          },
+        ],
+      },
     });
   });
 
@@ -179,27 +163,24 @@ describe('Languages Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/languages/1',
-          message: 'must be string',
-          value: 7,
-        },
-        {
-          param: '/languages/3',
-          message: 'must be string',
-          value: 8,
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/languages/1',
+            message: 'must be string',
+            value: 7,
+          },
+          {
+            param: '/languages/3',
+            message: 'must be string',
+            value: 8,
+          },
+        ],
+      },
     });
   });
 });

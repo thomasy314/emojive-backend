@@ -1,19 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
-import { userValidator } from '../users.validator';
+import { userValidator } from '../users.schema';
 
 const validUserName = '🦆';
 const validLanguages = ['EN'];
 const validCountryCode = 'US';
 
 describe('Country Region Validation', () => {
-  let response: Response;
+  const response: Response = {} as Response;
   let next: NextFunction;
 
   beforeEach(() => {
-    response = {} as Response;
-    response.json = jest.fn();
-    response.status = jest.fn(() => response);
-
     next = jest.fn();
   });
 
@@ -37,9 +33,6 @@ describe('Country Region Validation', () => {
     // Validate
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith();
-
-    expect(response.status).toHaveBeenCalledTimes(0);
-    expect(response.json).toHaveBeenCalledTimes(0);
   });
 
   test('GIVEN countryRegion too short THEN userValidator returns countryRegion too short error', async () => {
@@ -57,22 +50,19 @@ describe('Country Region Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/countryRegion',
-          message: 'must contain exactly 2 characters',
-          value: 'E',
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/countryRegion',
+            message: 'must contain exactly 2 characters',
+            value: 'E',
+          },
+        ],
+      },
     });
   });
 
@@ -91,22 +81,19 @@ describe('Country Region Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/countryRegion',
-          message: 'must contain exactly 2 characters',
-          value: 'ENU',
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/countryRegion',
+            message: 'must contain exactly 2 characters',
+            value: 'ENU',
+          },
+        ],
+      },
     });
   });
 
@@ -125,22 +112,19 @@ describe('Country Region Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/countryRegion',
-          message: 'must be of type String',
-          value: 4,
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/countryRegion',
+            message: 'must be of type String',
+            value: 4,
+          },
+        ],
+      },
     });
   });
 });

@@ -1,45 +1,100 @@
 import { NextFunction, Request, Response } from 'express';
-import { QueryResult } from 'pg';
-import { findUserByUUID } from '../../users/db/users.queries';
+import authService from '../../auth/auth.service';
 import {
   givenInvalidUUID,
   givenRandomInt,
-  givenUser,
   givenValidUUID,
 } from '../../utils/test-helpers';
+import { ResponseError } from '../errorHandling/error.types';
 import authorization from './authorization';
 
-jest.mock('../../users/db/users.queries');
+const nonAllowListedUrl = '/non/allow-listed/api';
+
+jest.mock('../../auth/auth.service', () => {
+  const userServiceMock = {
+    confirmRouteAuthNeeded: jest.fn(),
+    authorizeRequest: jest.fn(),
+  };
+  return jest.fn(() => userServiceMock);
+});
 
 describe('authorization middleware', () => {
-  let response: Response;
+  const response: Response = {} as Response;
+  const authorizeRequestMock = jest.mocked(authService().authorizeRequest);
   let next: NextFunction;
 
   beforeEach(() => {
-    response = {} as Response;
-    response.sendStatus = jest.fn();
-
     next = jest.fn();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    authorizeRequestMock.mockReset();
   });
 
-  test('GIVEN userUUID THEN authorization calls next function', async () => {
+  test('GIVEN userUUID THEN authorization calls next function with no input', async () => {
     // Setup
+    const validUUID = givenValidUUID();
     const request: Request = {
+      originalUrl: nonAllowListedUrl,
       query: {
-        userUUID: givenValidUUID(),
+        userUUID: validUUID,
       },
     } as unknown as Request;
 
-    const queryResult = {
-      rows: [givenUser()],
-    } as QueryResult;
+    authorizeRequestMock.mockResolvedValueOnce(true);
 
-    const findUserByUUIDMock = jest.mocked(findUserByUUID);
-    findUserByUUIDMock.mockResolvedValueOnce(queryResult);
+    // Execute
+    await authorization(request, response, next);
+
+    // Validate
+    expect(authorizeRequestMock).toHaveBeenCalledTimes(1);
+    expect(authorizeRequestMock).toHaveBeenCalledWith(validUUID);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith();
+  });
+
+  test('GIVEN unauthorized userUUID THEN next function is called with response error', async () => {
+    // Setup
+    const validUUID = givenValidUUID();
+    const request: Request = {
+      originalUrl: nonAllowListedUrl,
+      query: {
+        userUUID: validUUID,
+      },
+    } as unknown as Request;
+
+    const nextError: ResponseError = {
+      status: 401,
+      error: new Error('Not Authorized'),
+    };
+
+    authorizeRequestMock.mockResolvedValueOnce(false);
+
+    // Execute
+    await authorization(request, response, next);
+
+    // Validate
+    expect(authorizeRequestMock).toHaveBeenCalledTimes(1);
+    expect(authorizeRequestMock).toHaveBeenCalledWith(validUUID);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith(nextError);
+  });
+
+  test('GIVEN allowlisted pathname without userUUID THEN authorization calls next function with no input', async () => {
+    // Setup
+    const request: Request = {
+      originalUrl: '/user/create',
+    } as Request;
+
+    authorizeRequestMock.mockResolvedValueOnce(true);
+
+    const confirmRouteAuthNeeded = jest.mocked(
+      authService().confirmRouteAuthNeeded
+    );
+    confirmRouteAuthNeeded.mockReturnValueOnce(false);
 
     // Execute
     await authorization(request, response, next);
@@ -48,123 +103,76 @@ describe('authorization middleware', () => {
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith();
 
-    expect(response.sendStatus).toHaveBeenCalledTimes(0);
+    expect(authorizeRequestMock).toHaveBeenCalledTimes(0);
   });
 
-  test('GIVEN non string userUUID THEN authorization fails', async () => {
+  test('GIVEN non string userUUID THEN next function is called with response error', async () => {
     // Setup
 
     const request: Request = {
+      originalUrl: nonAllowListedUrl,
       query: {
         userUUID: givenRandomInt(),
       },
     } as unknown as Request;
 
+    const nextError: ResponseError = {
+      status: 401,
+      error: new Error('Not Authorized'),
+    };
+
     // Execute
     await authorization(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.sendStatus).toHaveBeenCalledTimes(1);
-    expect(response.sendStatus).toHaveBeenCalledWith(401);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith(nextError);
   });
 
-  test('GIVEN invalid UUID THEN authorization fails', async () => {
+  test('GIVEN invalid UUID THEN next function is called with response error', async () => {
     // Setup
 
     const request: Request = {
+      originalUrl: nonAllowListedUrl,
       query: {
         userUUID: givenInvalidUUID(),
       },
     } as unknown as Request;
 
+    const nextError: ResponseError = {
+      status: 401,
+      error: new Error('Not Authorized'),
+    };
+
     // Execute
     await authorization(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.sendStatus).toHaveBeenCalledTimes(1);
-    expect(response.sendStatus).toHaveBeenCalledWith(401);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith(nextError);
   });
 
-  test('GIVEN no user was found THEN authorization fails', async () => {
+  test('GIVEN auth service fails THEN next function is called with response error', async () => {
     // Setup
-    const queryResult = {
-      rows: [],
-    } as unknown as QueryResult;
-
-    const findUserByUUIDMock = jest.mocked(findUserByUUID);
-    findUserByUUIDMock.mockResolvedValueOnce(queryResult);
-
     const request: Request = {
+      originalUrl: nonAllowListedUrl,
       query: {
         userUUID: givenValidUUID(),
       },
     } as unknown as Request;
 
-    // Execute
-    await authorization(request, response, next);
+    const noUserFoundResError: ResponseError = {
+      status: 401,
+      error: Error('User not found'),
+    };
 
-    // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.sendStatus).toHaveBeenCalledTimes(1);
-    expect(response.sendStatus).toHaveBeenCalledWith(401);
-  });
-
-  test('GIVEN more than one user was found THEN authorization fails', async () => {
-    // Setup
-    const queryResult = {
-      rows: [givenUser(), givenUser()],
-    } as unknown as QueryResult;
-
-    const findUserByUUIDMock = jest.mocked(findUserByUUID);
-    findUserByUUIDMock.mockResolvedValueOnce(queryResult);
-
-    const request: Request = {
-      query: {
-        userUUID: givenValidUUID(),
-      },
-    } as unknown as Request;
+    authorizeRequestMock.mockRejectedValueOnce(noUserFoundResError);
 
     // Execute
     await authorization(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.sendStatus).toHaveBeenCalledTimes(1);
-    expect(response.sendStatus).toHaveBeenCalledWith(401);
-  });
-
-  test('GIVEN internal error when querying DB THEN authorization fails', async () => {
-    // Setup
-    const request: Request = {
-      query: {
-        userUUID: givenValidUUID(),
-      },
-    } as unknown as Request;
-
-    const errorMessage = 'bad thing';
-    const findUserByUUIDMock = jest.mocked(findUserByUUID);
-    findUserByUUIDMock.mockRejectedValueOnce(errorMessage);
-
-    const consoleErrorSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(jest.fn);
-
-    // Execute
-    await authorization(request, response, next);
-
-    // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(errorMessage);
-
-    expect(response.sendStatus).toHaveBeenCalledTimes(1);
-    expect(response.sendStatus).toHaveBeenCalledWith(500);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith(noUserFoundResError);
   });
 });
