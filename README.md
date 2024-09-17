@@ -49,7 +49,7 @@ This command will create all the necessary infrastructure and start the server. 
 
 The following steps will spin up the docker development environment and all necessary infrastructure:
 
-1. Run the following to deploy docker dev environment which hot loads changes:
+Run the following to deploy docker dev environment which hot loads changes:
 
 ```bash
 npm run docker:dev
@@ -59,17 +59,13 @@ npm run docker:dev
 npm run docker:dev:build
 ```
 
-2. Send requests to service: The server will display the ip and port the server is running on. Requests are then ready to be sent to it. Example:
+## Usage/Auth
+
+On startup, the service will display the IP address and port it is listening on. Before making any further requests, a user UUID must be obtained using the `/user/create` API. This UUID should then be included as the `userUUID` URL parameter in subsequent requests.
+
+Below is an example of creating a user for a server running on `localhost` at port `7000`:
 
 ```bash
-# .env
- IP = localhost
- PORT = 7000
- ...
-```
-
-```bash
-# Request
 curl    --location '127.0.0.1:7000/user/create' \
         --header 'Content-Type: application/json' \
         --data '{
