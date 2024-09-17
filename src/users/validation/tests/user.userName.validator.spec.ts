@@ -1,19 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
-import userValidator from '../users.validator';
+import { userValidator } from '../users.schema';
 
 const validLanguages = ['EN'];
 const validCountryCode = 'US';
 const validCountryRegion = 'CA';
 
 describe('User Name Validation', () => {
-  let response: Response;
+  const response = {} as Response;
   let next: NextFunction;
 
   beforeEach(() => {
-    response = {} as Response;
-    response.json = jest.fn();
-    response.status = jest.fn(() => response);
-
     next = jest.fn();
   });
 
@@ -35,22 +31,19 @@ describe('User Name Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: 'userName',
-          message: "must have required property 'userName'",
-          value: 'userName',
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: 'userName',
+            message: "must have required property 'userName'",
+            value: 'userName',
+          },
+        ],
+      },
     });
   });
 
@@ -69,22 +62,19 @@ describe('User Name Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/userName',
-          message: 'must contain at least 1 character',
-          value: '',
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/userName',
+            message: 'must contain at least 1 character',
+            value: '',
+          },
+        ],
+      },
     });
   });
 
@@ -105,23 +95,20 @@ describe('User Name Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/userName',
-          message:
-            'must contain at most 10 characters - note that emojis can be made up of multiple characters',
-          value: '📋🚶🅿️⛄️🔪🔦🚋💳📋',
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/userName',
+            message:
+              'must contain at most 10 characters - note that emojis can be made up of multiple characters',
+            value: '📋🚶🅿️⛄️🔪🔦🚋💳📋',
+          },
+        ],
+      },
     });
   });
 
@@ -140,22 +127,19 @@ describe('User Name Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/userName',
-          message: 'must be of type String',
-          value: 2,
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/userName',
+            message: 'must be of type String',
+            value: 2,
+          },
+        ],
+      },
     });
   });
 });

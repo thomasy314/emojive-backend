@@ -1,19 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
-import userValidator from '../users.validator';
+import { userValidator } from '../users.schema';
 
 const validUserName = '🦆';
 const validLanguages = ['EN'];
 const validCountryRegion = 'CA';
 
 describe('Country Code Validation', () => {
-  let response: Response;
+  const response: Response = {} as Response;
   let next: NextFunction;
 
   beforeEach(() => {
-    response = {} as Response;
-    response.json = jest.fn();
-    response.status = jest.fn(() => response);
-
     next = jest.fn();
   });
 
@@ -35,22 +31,19 @@ describe('Country Code Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: 'countryCode',
-          message: "must have required property 'countryCode'",
-          value: 'countryCode',
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: 'countryCode',
+            message: "must have required property 'countryCode'",
+            value: 'countryCode',
+          },
+        ],
+      },
     });
   });
 
@@ -69,22 +62,19 @@ describe('Country Code Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/countryCode',
-          message: 'must contain exactly 2 characters',
-          value: 'E',
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/countryCode',
+            message: 'must contain exactly 2 characters',
+            value: 'E',
+          },
+        ],
+      },
     });
   });
 
@@ -103,22 +93,19 @@ describe('Country Code Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/countryCode',
-          message: 'must contain exactly 2 characters',
-          value: 'ENU',
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/countryCode',
+            message: 'must contain exactly 2 characters',
+            value: 'ENU',
+          },
+        ],
+      },
     });
   });
 
@@ -137,22 +124,19 @@ describe('Country Code Validation', () => {
     await userValidator(request, response, next);
 
     // Validate
-    expect(next).toHaveBeenCalledTimes(0);
-
-    expect(response.status).toHaveBeenCalledTimes(1);
-    expect(response.status).toHaveBeenCalledWith(400);
-
-    expect(response.json).toHaveBeenCalledTimes(1);
-    expect(response.json).toHaveBeenCalledWith({
-      status: 'errors',
-      code: 400,
-      errors: [
-        {
-          param: '/countryCode',
-          message: 'must be of type String',
-          value: 5,
-        },
-      ],
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/countryCode',
+            message: 'must be of type String',
+            value: 5,
+          },
+        ],
+      },
     });
   });
 });

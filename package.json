@@ -6,7 +6,7 @@
     "docker:dev": "docker compose -f compose.core.yml -f compose.dev.yml up",
     "docker:dev:build": "docker compose -f compose.core.yml -f compose.dev.yml up --build",
     "docker:prod:build": "docker compose -f compose.core.yml -f compose.prod.build.yml up --build",
-    "docker:prod:deploy": "docker compose -f compose.core.yml -f compose.prod.deploy.yml up",
+    "docker:prod:deploy": "docker compose -f compose.core.yml -f compose.prod.deploy.yml up -d",
     "build": "rimraf dist && tsc",
     "dev": "npm run build && (tsc -w & node --watch --env-file=.env dist/app.js)",
     "start": "npm run build && node --watch --env-file=.env dist/app.js",

@@ -2,6 +2,7 @@ import Ajv, { JSONSchemaType } from 'ajv';
 import ajvErrors from 'ajv-errors';
 import addFormats from 'ajv-formats';
 import { VALIDATION_ERRORS } from '../../middleware/validation/errorMessages';
+import createValidator from '../../middleware/validation/validator';
 const ajv = new Ajv({
   allErrors: true,
   verbose: true,
@@ -71,4 +72,8 @@ const userSchema: JSONSchemaType<UserSchema> = {
   additionalProperties: false,
 };
 
-export const validateUser = ajv.compile(userSchema);
+const validateUser = ajv.compile(userSchema);
+
+const userValidator = createValidator(validateUser);
+
+export { userValidator };

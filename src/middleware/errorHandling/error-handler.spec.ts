@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import errorHandler from './errorHandler';
+import errorHandler from './error-handler';
 
 describe('Error Handling', () => {
   test('GIVEN an error occurs THEN error is printed and sent to client', () => {
