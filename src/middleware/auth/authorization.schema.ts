@@ -1,7 +1,7 @@
 import Ajv, { JSONSchemaType } from 'ajv';
 import ajvErrors from 'ajv-errors';
 import addFormats from 'ajv-formats';
-import { VALIDATION_ERRORS } from '../../middleware/validation/errorMessages';
+import { VALIDATION_ERRORS } from '../validation/error-messages';
 const ajv = new Ajv({
   allErrors: true,
   verbose: true,
