@@ -17,6 +17,37 @@ describe('User Name Validation', () => {
     jest.clearAllMocks();
   });
 
+  test('GIVEN non-emoji userName THEN userValidator returns userName missing error', async () => {
+    // Setup
+    const request: Request = {
+      body: {
+        userName: 'jim',
+        languages: validLanguages,
+        countryCode: validCountryCode,
+        countryRegion: validCountryRegion,
+      },
+    } as Request;
+
+    // Execute
+    await userValidator(request, response, next);
+
+    // Validate
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/userName',
+            message: 'must be of format Emoji',
+            value: 'jim',
+          },
+        ],
+      },
+    });
+  });
+
   test('GIVEN userName missing THEN userValidator returns userName missing error', async () => {
     // Setup
     const request: Request = {

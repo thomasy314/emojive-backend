@@ -1,15 +1,7 @@
-import Ajv, { JSONSchemaType } from 'ajv';
-import ajvErrors from 'ajv-errors';
-import addFormats from 'ajv-formats';
-import { VALIDATION_ERRORS } from '../../middleware/validation/errorMessages';
+import { JSONSchemaType } from 'ajv';
+import ajv from '../../middleware/validation/ajv';
+import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
 import createValidator from '../../middleware/validation/validator';
-const ajv = new Ajv({
-  allErrors: true,
-  verbose: true,
-});
-
-addFormats(ajv);
-ajvErrors(ajv /*,{ singleError: true }*/);
 
 type UserSchema = {
   userName: string;
@@ -23,6 +15,7 @@ const userSchema: JSONSchemaType<UserSchema> = {
   properties: {
     userName: {
       type: 'string',
+      format: 'emoji',
       nullable: false,
       minLength: 1,
       maxLength: 10,
@@ -30,6 +23,7 @@ const userSchema: JSONSchemaType<UserSchema> = {
         minLength: `${VALIDATION_ERRORS.MIN_LENGTH} 1 character`,
         maxLength: `${VALIDATION_ERRORS.MAX_LENGTH} 10 characters - note that emojis can be made up of multiple characters`,
         type: `${VALIDATION_ERRORS.TYPE} String`,
+        format: `${VALIDATION_ERRORS.FORMAT} Emoji`,
       },
     },
     languages: {

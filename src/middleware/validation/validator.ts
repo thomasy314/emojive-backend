@@ -1,7 +1,7 @@
 import { ValidateFunction } from 'ajv';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import { parseErrors } from '../../middleware/validation/ajvErrors';
 import { ResponseError } from '../errorHandling/error.types';
+import { parseErrors } from './ajv-errors';
 
 function createValidator(validateFunction: ValidateFunction): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
