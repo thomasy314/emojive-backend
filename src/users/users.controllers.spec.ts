@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { LanguageTag } from '../languages/languages.types';
 import userController from './users.controller';
 import userService from './users.service';
 
@@ -10,7 +11,11 @@ jest.mock('./users.service', () => {
 });
 
 const validUserName = '🦆';
-const validLanguages = ['EN'];
+const validLanguages = ['en'];
+const languageTag: LanguageTag = {
+  languageCode: 'en',
+  regionCode: null,
+};
 const validCountryCode = 'US';
 const validCountryRegion = 'CA';
 
@@ -42,7 +47,15 @@ describe('Users Controller', () => {
       } as Request;
 
       const mockedCreateUser = jest.mocked(userService().createUser);
-      mockedCreateUser.mockResolvedValueOnce({ hello: 'world' });
+
+      const responseData = {
+        userUUID: '123',
+        userName: validUserName,
+        country: validCountryCode,
+        countryRegion: validCountryRegion,
+        languages: validLanguages,
+      };
+      mockedCreateUser.mockResolvedValueOnce(responseData);
 
       // Execute
       await userController().createUser(request, response, next);
@@ -51,13 +64,13 @@ describe('Users Controller', () => {
       expect(userService().createUser).toHaveBeenCalledTimes(1);
       expect(userService().createUser).toHaveBeenCalledWith(
         validUserName,
-        validLanguages,
+        [languageTag],
         validCountryCode,
         validCountryRegion
       );
 
       expect(response.send).toHaveBeenCalledTimes(1);
-      expect(response.send).toHaveBeenCalledWith('{"hello":"world"}');
+      expect(response.send).toHaveBeenCalledWith(JSON.stringify(responseData));
 
       expect(next).toHaveBeenCalledTimes(0);
     });
@@ -84,7 +97,7 @@ describe('Users Controller', () => {
     expect(userService().createUser).toHaveBeenCalledTimes(1);
     expect(userService().createUser).toHaveBeenCalledWith(
       validUserName,
-      validLanguages,
+      [languageTag],
       validCountryCode,
       validCountryRegion
     );

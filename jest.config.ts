@@ -30,6 +30,7 @@ const config: JestConfigWithTsJest = {
     // TODO: Implemnet Integration Tests
     '!src/app.ts',
     '!src/**/*router.ts',
+    '!src/**/*types.ts',
     '!src/config/express.config.ts',
   ],
 

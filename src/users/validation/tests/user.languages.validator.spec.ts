@@ -17,6 +17,39 @@ describe('Languages Validation', () => {
     jest.clearAllMocks();
   });
 
+  test('GIVEN non rfc 5646 language tag THEN userValidator returns format error', async () => {
+    // Setup
+    const invalidLanguage = 'bad lang';
+
+    const request: Request = {
+      body: {
+        userName: validUserName,
+        languages: [invalidLanguage],
+        countryCode: validCountryCode,
+        countryRegion: validCountryRegion,
+      },
+    } as Request;
+
+    // Execute
+    await userValidator(request, response, next);
+
+    // Validate
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      status: 400,
+      error: new Error('Input Validation Error'),
+      json: {
+        validationErrors: [
+          {
+            param: '/languages/0',
+            message: 'must be of format language-tag (RFC 5646)',
+            value: invalidLanguage,
+          },
+        ],
+      },
+    });
+  });
+
   test('GIVEN languages missing THEN userValidator returns languages missing error', async () => {
     // Setup
     const request: Request = {
@@ -80,7 +113,7 @@ describe('Languages Validation', () => {
 
   test('GIVEN languages too long THEN userValidator returns languages too long error', async () => {
     // Setup
-    const tooLongLanguages = new Array(11).fill('hello');
+    const tooLongLanguages = new Array(11).fill('en');
 
     const request: Request = {
       body: {
@@ -147,7 +180,7 @@ describe('Languages Validation', () => {
     const request: Request = {
       body: {
         userName: validUserName,
-        languages: ['hello', 7, 'world', 8],
+        languages: ['en', 7, 'fr', 8],
         countryCode: validCountryCode,
         countryRegion: validCountryRegion,
       },
@@ -171,12 +204,12 @@ describe('Languages Validation', () => {
         validationErrors: [
           {
             param: '/languages/1',
-            message: 'must be string',
+            message: 'must be of type String',
             value: 7,
           },
           {
             param: '/languages/3',
-            message: 'must be string',
+            message: 'must be of type String',
             value: 8,
           },
         ],

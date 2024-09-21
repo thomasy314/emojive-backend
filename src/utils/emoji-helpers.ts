@@ -1,7 +1,7 @@
-import * as emoji from 'node-emoji';
+import { strip as emojiStrip } from 'node-emoji';
 
 function isOnlyEmojis(test: string) {
-  const strippedText = emoji.strip(test);
+  const strippedText = emojiStrip(test);
   return strippedText.length === 0;
 }
 

@@ -36,7 +36,7 @@ describe('authorization middleware', () => {
     // Setup
     const validUUID = givenValidUUID();
     const request: Request = {
-      originalUrl: nonAllowListedUrl,
+      path: nonAllowListedUrl,
       query: {
         userUUID: validUUID,
       },
@@ -59,7 +59,7 @@ describe('authorization middleware', () => {
     // Setup
     const validUUID = givenValidUUID();
     const request: Request = {
-      originalUrl: nonAllowListedUrl,
+      path: nonAllowListedUrl,
       query: {
         userUUID: validUUID,
       },
@@ -86,7 +86,7 @@ describe('authorization middleware', () => {
   test('GIVEN allowlisted pathname without userUUID THEN authorization calls next function with no input', async () => {
     // Setup
     const request: Request = {
-      originalUrl: '/user/create',
+      path: '/user/create',
     } as Request;
 
     authorizeRequestMock.mockResolvedValueOnce(true);
@@ -110,7 +110,7 @@ describe('authorization middleware', () => {
     // Setup
 
     const request: Request = {
-      originalUrl: nonAllowListedUrl,
+      path: nonAllowListedUrl,
       query: {
         userUUID: givenRandomInt(),
       },
@@ -133,7 +133,7 @@ describe('authorization middleware', () => {
     // Setup
 
     const request: Request = {
-      originalUrl: nonAllowListedUrl,
+      path: nonAllowListedUrl,
       query: {
         userUUID: givenInvalidUUID(),
       },
@@ -155,7 +155,7 @@ describe('authorization middleware', () => {
   test('GIVEN auth service fails THEN next function is called with response error', async () => {
     // Setup
     const request: Request = {
-      originalUrl: nonAllowListedUrl,
+      path: nonAllowListedUrl,
       query: {
         userUUID: givenValidUUID(),
       },

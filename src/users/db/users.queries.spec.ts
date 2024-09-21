@@ -1,108 +1,89 @@
-import { Pool } from 'pg';
-import { createUserQuery, findUserByUUID } from './users.queries';
+import { query } from '../../db';
+import {
+  createUserQuery,
+  findUserByIDQuery,
+  findUserByUUIDQuery,
+  linkUserToLanguageQuery,
+} from './users.queries';
 
-jest.mock('pg', () => {
-  const mPool = {
-    query: jest.fn(),
-  };
-  return { Pool: jest.fn(() => mPool) };
-});
+jest.mock('../../db');
 
 const userName: string = '😊';
 const countryCode: string = 'US';
 const countryRegion: string = 'CA';
+const userUUID = '550e8400-e29b-41d4-a716-446655440000';
+const userID = '1';
 
 describe('User Queries', () => {
-  let mockedPool: jest.MockedObject<Pool>;
-
-  beforeEach(() => {
-    mockedPool = jest.mocked(new Pool());
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('createUserQuery', () => {
-    test('GIVEN valid input THEN createUserQuery returns new user UUID', () => {
+    test('GIVEN valid input THEN query is called with the proper input', async () => {
       // Setup
-      const userUUID = '550e8400-e29b-41d4-a716-446655440000';
 
-      mockedPool.query.mockImplementationOnce(
-        (
-          _,
-          [userNameDbInput, countryCodeDbInput, countryRegionDbInput]: [
-            string,
-            string,
-            string,
-          ]
-        ) => {
-          return Promise.resolve({
-            rows: [
-              {
-                userName: userNameDbInput,
-                countryCode: countryCodeDbInput,
-                countryRegion: countryRegionDbInput,
-                userUUID,
-              },
-            ],
-          });
-        }
-      );
+      const queryMock = jest.mocked(query);
 
       // Execute
-      const createUserPromise = createUserQuery(
-        userName,
-        countryCode,
-        countryRegion
-      );
+      await createUserQuery(userName, countryCode, countryRegion);
 
       // Validate
-      createUserPromise.then(finalResponse => {
-        expect(finalResponse).toStrictEqual({
-          rows: [
-            {
-              userName,
-              countryCode,
-              countryRegion,
-              userUUID,
-            },
-          ],
-        });
-      });
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith(
+        'INSERT INTO users(user_name, country, country_region) VALUES($1, $2, $3) RETURNING *',
+        [userName, countryCode, countryRegion]
+      );
     });
   });
 
   describe('findUserByUUID', () => {
-    test('GIVEN valid input THEN findUserByUUID returns user', () => {
+    test('GIVEN valid input THEN query is called with the proper input', async () => {
       // Setup
-      const userUUID = '550e8400-e29b-41d4-a716-446655440000';
-
-      mockedPool.query.mockImplementationOnce(
-        (_, [userUUID]: [string, string, string]) => {
-          return Promise.resolve({
-            rows: [
-              {
-                userUUID,
-              },
-            ],
-          });
-        }
-      );
+      const queryMock = jest.mocked(query);
 
       // Execute
-      const findUserByUUIDResponse = findUserByUUID(userUUID);
+      await findUserByUUIDQuery(userUUID);
 
       // Validate
-      findUserByUUIDResponse.then(finalResponse => {
-        expect(finalResponse).toStrictEqual({
-          rows: [
-            {
-              userUUID,
-            },
-          ],
-        });
-      });
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith(
+        "SELECT users.*, ARRAY_AGG(language_code || COALESCE('-' || region_code, '')) language_tags FROM users LEFT JOIN users_languages USING (user_id) LEFT JOIN languages USING (language_id) WHERE user_uuid = $1 GROUP BY users.user_id",
+        [userUUID]
+      );
+    });
+  });
+
+  describe('findUserByID', () => {
+    test('GIVEN valid input THEN query is called with the proper input', async () => {
+      // Setup
+      const queryMock = jest.mocked(query);
+
+      // Execute
+      await findUserByIDQuery(userID);
+
+      // Validate
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith(
+        "SELECT users.*, ARRAY_AGG(language_code || COALESCE('-' || region_code, '')) language_tags FROM users LEFT JOIN users_languages USING (user_id) LEFT JOIN languages USING (language_id) WHERE user_id = $1 GROUP BY users.user_id",
+        [userID]
+      );
+    });
+  });
+
+  describe('linkUserToLanguageQuery', () => {
+    const languageIDs: string[] = ['10', '11', '12'];
+
+    test('GIVEN valid input THEN linkUserToLanguageQuery returns new user UUID', async () => {
+      // Setup
+      const queryMock = jest.mocked(query);
+
+      // Execute
+      await linkUserToLanguageQuery(userID, languageIDs);
+
+      // Validate
+
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith(
+        'INSERT INTO users_languages(user_id, language_id) SELECT * FROM UNNEST ($1::int[], $2::int[])',
+        [[userID, userID, userID], languageIDs]
+      );
     });
   });
 });
