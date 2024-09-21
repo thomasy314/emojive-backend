@@ -30,6 +30,11 @@ const userSchema: JSONSchemaType<UserSchema> = {
       type: 'array',
       items: {
         type: 'string',
+        format: 'language-tag',
+        errorMessage: {
+          format: `${VALIDATION_ERRORS.FORMAT} language-tag (RFC 5646)`,
+          type: `${VALIDATION_ERRORS.TYPE} String`,
+        },
       },
       nullable: false,
       minItems: 1,

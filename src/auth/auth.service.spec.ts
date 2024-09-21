@@ -1,6 +1,6 @@
 import { QueryResult } from 'pg';
-import { findUserByUUID } from '../users/db/users.queries';
-import { givenUser } from '../utils/test-helpers';
+import { findUserByUUIDQuery } from '../users/db/users.queries';
+import { givenDBUser } from '../utils/test-helpers';
 import authService from './auth.service';
 
 jest.mock('../users/db/users.queries');
@@ -31,7 +31,7 @@ describe('Auth Service', () => {
   });
 
   describe('authorizeRequest', () => {
-    const findUserByUUIDMock = jest.mocked(findUserByUUID);
+    const findUserByUUIDMock = jest.mocked(findUserByUUIDQuery);
 
     afterEach(() => {
       findUserByUUIDMock.mockReset();
@@ -39,7 +39,7 @@ describe('Auth Service', () => {
 
     test('GIVEN valid and authorized UUID THEN return true', () => {
       // Setup
-      const user = givenUser();
+      const user = givenDBUser();
 
       const queryResult = {
         rows: [user],
@@ -59,7 +59,7 @@ describe('Auth Service', () => {
 
     test('GIVEN unknown UUID THEN reject request with 401', () => {
       // Setup
-      const user = givenUser();
+      const user = givenDBUser();
 
       const queryResult = {
         rows: [],
@@ -84,7 +84,7 @@ describe('Auth Service', () => {
 
     test('GIVEN UUID with multiple matches THEN reject request with 500', () => {
       // Setup
-      const user = givenUser();
+      const user = givenDBUser();
 
       const queryResult = {
         rows: [user, user],
@@ -109,7 +109,7 @@ describe('Auth Service', () => {
 
     test('GIVEN findUserByUUID fails THEN reject request with 500', () => {
       // Setup
-      const user = givenUser();
+      const user = givenDBUser();
 
       const dbError = new Error('the server exploded');
 

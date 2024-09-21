@@ -1,5 +1,5 @@
 import { ResponseError } from '../middleware/errorHandling/error.types';
-import { findUserByUUID } from '../users/db/users.queries';
+import { findUserByUUIDQuery } from '../users/db/users.queries';
 import routeAllowList from './authorization.allowlist';
 
 function authService() {
@@ -9,7 +9,7 @@ function authService() {
 
   function authorizeRequest(userUUID: string): Promise<boolean> {
     return new Promise((resolve, reject: (error: ResponseError) => void) => {
-      return findUserByUUID(userUUID)
+      return findUserByUUIDQuery(userUUID)
         .then(result => {
           if (result.rows.length === 0) {
             reject({ status: 401, error: Error('Not Authorized') });

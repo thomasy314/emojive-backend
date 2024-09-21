@@ -1,11 +1,21 @@
 import { QueryResult } from 'pg';
-import { createUserQuery } from './db/users.queries';
+import { transaction } from '../db';
+import { LanguageTag } from '../languages/languages.types';
+import { givenDBUser } from '../utils/test-helpers';
+import { findUserByIDQuery, linkUserToLanguageQuery } from './db/users.queries';
 import userService from './users.service';
 
 jest.mock('./db/users.queries');
 
+jest.mock('../db');
+
 const validUserName = '🦆';
-const validLanguages = ['EN'];
+const validLanguages: LanguageTag[] = [
+  {
+    languageCode: 'en',
+    regionCode: '',
+  },
+];
 const validCountryCode = 'US';
 const validCountryRegion = 'CA';
 
@@ -15,25 +25,36 @@ describe('Users Service', () => {
   });
 
   describe('Create User', () => {
-    test('GIVEN expected user input THEN new user object is returned without user id', () => {
+    test('GIVEN expected user input THEN new user object is returned without user id', async () => {
       // Setup
-      const queryResult = {
-        rows: [
-          {
-            user_uuid: '7ab39ec9-612d-4be8-b43c-f84bbea7f8a4',
-            user_name: '🦆',
-            creation_timestamp: '2024-09-12T23:40:02.679Z',
-            last_activity_time: '2024-09-12T23:40:02.679Z',
-            country: 'US',
-            country_region: 'CO',
-          },
-        ],
+
+      const userResult = givenDBUser();
+      // Need to copy since createUser deletes id, hiding it from the user
+      const userId = userResult.user_id;
+      const languageResult = {
+        language_id: 1,
+      };
+
+      const createUserQueryResult = {
+        rows: [userResult],
       } as QueryResult;
-      const createUserQueryMock = jest.mocked(createUserQuery);
-      createUserQueryMock.mockResolvedValueOnce(queryResult);
+      const createLanguageQueryResult = {
+        rows: [languageResult],
+      } as QueryResult;
+
+      const transactionMock = jest.mocked(transaction);
+      transactionMock.mockResolvedValueOnce([
+        createUserQueryResult,
+        createLanguageQueryResult,
+      ]);
+
+      const linkUserToLanguageQueryMock = jest.mocked(linkUserToLanguageQuery);
+
+      const findUserByIDQueryMock = jest.mocked(findUserByIDQuery);
+      findUserByIDQueryMock.mockResolvedValueOnce(createUserQueryResult);
 
       // Execute
-      const resultPromise = userService().createUser(
+      const result = await userService().createUser(
         validUserName,
         validLanguages,
         validCountryCode,
@@ -41,22 +62,36 @@ describe('Users Service', () => {
       );
 
       // Validate
-      const resolvedValue = queryResult.rows[0];
+      const resolvedValue = createUserQueryResult.rows[0];
       delete resolvedValue.user_id;
-      expect(resultPromise).resolves.toStrictEqual(resolvedValue);
+      expect(result).toStrictEqual({
+        userUUID: userResult.user_uuid,
+        userName: userResult.user_name,
+        country: userResult.country,
+        countryRegion: userResult.country_region,
+        languages: userResult.language_tags,
+      });
 
-      expect(createUserQueryMock).toHaveBeenCalledTimes(1);
-      expect(createUserQueryMock).toHaveBeenCalledWith(
-        validUserName,
-        validCountryCode,
-        validCountryRegion
-      );
+      expect(transactionMock).toHaveBeenCalledTimes(1);
+      expect(transactionMock).toHaveBeenCalledWith([
+        expect.any(Function),
+        expect.any(Function),
+      ]);
+
+      expect(linkUserToLanguageQueryMock).toHaveBeenCalledTimes(1);
+      expect(linkUserToLanguageQueryMock).toHaveBeenCalledWith(userId, [1]);
+
+      expect(findUserByIDQueryMock).toHaveBeenCalledTimes(1);
+      expect(findUserByIDQueryMock).toHaveBeenCalledWith(userId);
     });
 
-    test('GIVEN createUserQuery fails THEN error thrown in promise', () => {
+    test('GIVEN the create user transaction fails THEN error thrown in promise', () => {
       // Setup
-      const createUserQueryMock = jest.mocked(createUserQuery);
-      createUserQueryMock.mockRejectedValueOnce('Evil');
+
+      const transactionMock = jest.mocked(transaction);
+      transactionMock.mockRejectedValueOnce('Evil');
+
+      const linkUserToLanguageQueryMock = jest.mocked(linkUserToLanguageQuery);
 
       // Execute
       const resultPromise = userService().createUser(
@@ -69,12 +104,13 @@ describe('Users Service', () => {
       // Validate
       expect(resultPromise).rejects.toBe('Evil');
 
-      expect(createUserQueryMock).toHaveBeenCalledTimes(1);
-      expect(createUserQueryMock).toHaveBeenCalledWith(
-        validUserName,
-        validCountryCode,
-        validCountryRegion
-      );
+      expect(transactionMock).toHaveBeenCalledTimes(1);
+      expect(transactionMock).toHaveBeenCalledWith([
+        expect.any(Function),
+        expect.any(Function),
+      ]);
+
+      expect(linkUserToLanguageQueryMock).toHaveBeenCalledTimes(0);
     });
   });
 });

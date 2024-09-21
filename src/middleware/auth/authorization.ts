@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import authService from '../../auth/auth.service';
-import { getPathName } from '../../utils/request-url-helpers';
 import { ResponseError } from '../errorHandling/error.types';
 import {
   AuthorizationSchema,
@@ -12,9 +11,7 @@ function authorization(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  const pathName = getPathName(req.originalUrl);
-
-  if (authService().confirmRouteAuthNeeded(pathName) === false) {
+  if (authService().confirmRouteAuthNeeded(req.path) === false) {
     next();
     return Promise.resolve();
   }
@@ -45,11 +42,7 @@ function authorization(
 
       next();
     })
-    .catch(error => {
-      console.log('HERE');
-      console.log(error);
-      next(error);
-    });
+    .catch(next);
 }
 
 export default authorization;

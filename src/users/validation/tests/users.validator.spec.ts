@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { userValidator } from '../users.schema';
 
 const validUserName = '🦆';
-const validLanguages = ['EN'];
+const validLanguages = ['en-GB'];
 const validCountryCode = 'US';
 const validCountryRegion = 'CA';
 
