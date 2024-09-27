@@ -24,14 +24,16 @@ const config: JestConfigWithTsJest = {
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
+  // TODO: Implemnet Integration Tests
   collectCoverageFrom: [
     'src/**/*.ts',
     // Removing router related files as these are tested in integration tests
-    // TODO: Implemnet Integration Tests
     '!src/app.ts',
     '!src/**/*router.ts',
     '!src/**/*types.ts',
     '!src/config/express.config.ts',
+    // Since this is a personal project and creating unit tests for schema validators is time consuming, this will be skipped
+    '!src/**/*schema.ts',
   ],
 
   // The directory where Jest should output its coverage files

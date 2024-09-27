@@ -14,7 +14,7 @@ function userController() {
     return userService()
       .createUser(userName, languageTags, countryCode, countryRegion)
       .then(result => {
-        res.send(JSON.stringify(result));
+        res.send(result);
       })
       .catch(next);
   };

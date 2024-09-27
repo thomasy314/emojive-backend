@@ -70,7 +70,7 @@ describe('Users Controller', () => {
       );
 
       expect(response.send).toHaveBeenCalledTimes(1);
-      expect(response.send).toHaveBeenCalledWith(JSON.stringify(responseData));
+      expect(response.send).toHaveBeenCalledWith(responseData);
 
       expect(next).toHaveBeenCalledTimes(0);
     });
