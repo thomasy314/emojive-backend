@@ -16,7 +16,7 @@ function chatroomController() {
       isPublic,
       maxOccupancy,
     });
-    return Promise.resolve();
+    return Promise.resolve().catch(next);
   }
 
   return {

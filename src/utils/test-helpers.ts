@@ -20,7 +20,7 @@ export function givenRandomBoolean(probablityOfTrue: number = 0.5): boolean {
 export function givenRandomEmoji(length: number = 1): string {
   return Array(length)
     .fill('')
-    .map(x => randomEmoji().emoji)
+    .map(() => randomEmoji().emoji)
     .join('');
 }
 
