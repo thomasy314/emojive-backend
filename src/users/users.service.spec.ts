@@ -62,8 +62,6 @@ describe('Users Service', () => {
       );
 
       // Validate
-      const resolvedValue = createUserQueryResult.rows[0];
-      delete resolvedValue.user_id;
       expect(result).toStrictEqual({
         userUUID: userResult.user_uuid,
         userName: userResult.user_name,
@@ -85,7 +83,7 @@ describe('Users Service', () => {
       expect(findUserByIDQueryMock).toHaveBeenCalledWith(userId);
     });
 
-    test('GIVEN the create user transaction fails THEN error thrown in promise', () => {
+    test('GIVEN the create user transaction fails THEN error is thrown', () => {
       // Setup
 
       const transactionMock = jest.mocked(transaction);

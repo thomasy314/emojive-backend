@@ -129,6 +129,8 @@ for more detailed information about file structure see [File Structure Guideline
 
 - `/user`
   - `POST /create` - creates a new user and returns the stored user data along with a generated UUID used for authentication.
+- `/chatroom`
+  - `POST /create` - creates a new chatroom and returns the stored user data along with a generated UUID used for authentication.
 
 <u>**API Handling**</u>
 
