@@ -26,14 +26,24 @@ export function givenRandomEmoji(length: number = 1): string {
 
 export function givenDBUser() {
   return {
-    user_id: 1,
-    user_uuid: '7ab39ec9-612d-4be8-b43c-f84bbea7f8a4',
+    user_id: givenRandomInt(100),
+    user_uuid: givenValidUUID(),
     user_name: givenRandomEmoji(),
     creation_timestamp: '2024-09-12T23:40:02.679Z',
     last_activity_time: '2024-09-12T23:40:02.679Z',
     country: 'US',
     country_region: 'CO',
     language_tags: ['en', 'en-GB'],
+  };
+}
+
+export function givenDBChatroom() {
+  return {
+    chatroom_id: givenRandomInt(100),
+    chatroom_uuid: givenValidUUID(),
+    chatroom_name: givenRandomEmoji(),
+    is_public: givenRandomBoolean(),
+    max_occupancy: givenRandomInt(20),
   };
 }
 

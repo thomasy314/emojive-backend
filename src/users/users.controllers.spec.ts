@@ -35,7 +35,7 @@ describe('Users Controller', () => {
   });
 
   describe('Create User', () => {
-    test('GIVEN expected user body THEN userService createUser is called', async () => {
+    test('GIVEN expected user body THEN returns data of newly create user', async () => {
       // Setup
       const request: Request = {
         body: {

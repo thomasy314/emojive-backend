@@ -1,23 +1,21 @@
-import { NextFunction, Request, Response } from 'express';
+import { RequestHandler } from 'express';
+import chatroomService from './chatrooms.service';
 
 function chatroomController() {
-  function createChatroom(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    const { chatroomName, isPublic, maxOccupancy } = req.body;
+  const createChatroom: RequestHandler = (
+    request,
+    response,
+    next
+  ): Promise<void> => {
+    const { chatroomName, isPublic, maxOccupancy } = request.body;
 
-    // TODO: Call chatroomService().createChatroom
-
-    res.send({
-      chatroomUUID: '123', // TODO: Get UUID from createChatroom() call
-      chatroomName,
-      isPublic,
-      maxOccupancy,
-    });
-    return Promise.resolve().catch(next);
-  }
+    return chatroomService()
+      .createChatroom(chatroomName, isPublic, maxOccupancy)
+      .then(result => {
+        response.send(result);
+      })
+      .catch(next);
+  };
 
   return {
     createChatroom,
