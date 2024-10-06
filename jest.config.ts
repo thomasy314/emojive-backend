@@ -30,6 +30,7 @@ const config: JestConfigWithTsJest = {
     // Removing router related files as these are tested in integration tests
     '!src/app.ts',
     '!src/**/*router.ts',
+    'src/websocket/*router.ts',
     '!src/**/*types.ts',
     '!src/config/express.config.ts',
     // Since this is a personal project and creating unit tests for schema validators is time consuming, this will be skipped
