@@ -12,7 +12,7 @@ interface EventConsumer {
 
 interface EventBusEvent {
   key: string;
-  value: Object | null;
+  value: object | null;
 }
 
 interface EventProducer {
