@@ -13,14 +13,13 @@ The frontend portion of this project is located in the [emojive-frontend](https:
 
 ## Environment Variables
 
-| Name              | Description                                     | Default Value |
-| ----------------- | ----------------------------------------------- | ------------- |
-| PORT              | PORT the server listens on                      | `3000`        |
-| IP                | IP the server listens on                        | `localhost`   |
-| POSTGRES_USER     | Username used to connect to PostgreSQL server   |               |
-| POSTGRES_PASSWORD | Password used to connect to PostgreSQL server   |               |
-| POSTGRES_PORT     | Port exposed to API to access PostgreSQL Server |               |
-| POSTGRES_DB       | Name given to Emojive PostreSQL database        |               |
+| Name              | Description                                   | Default Value |
+| ----------------- | --------------------------------------------- | ------------- |
+| PORT              | PORT the server listens on                    | `3000`        |
+| IP                | IP the server listens on                      | `localhost`   |
+| POSTGRES_USER     | Username used to connect to PostgreSQL server |               |
+| POSTGRES_PASSWORD | Password used to connect to PostgreSQL server |               |
+| POSTGRES_DB       | Name given to Emojive PostreSQL database      |               |
 
 ## Prerequisites
 

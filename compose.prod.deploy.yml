@@ -13,8 +13,15 @@ services:
   postgres_db:
     container_name: emojive-db
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+
+  kafka_events:
+    container_name: emojive-events
+    volumes:
+      - kafka_data:/bitnami/kafka
 
 volumes:
-  pgdata:
+  postgres_data:
+    driver: local
+  kafka_data:
     driver: local
