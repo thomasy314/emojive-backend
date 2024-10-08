@@ -6,7 +6,7 @@ services:
       - PORT=${PORT}
 
       - POSTGRES_HOST=postgres_db
-      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -15,8 +15,11 @@ services:
     depends_on:
       postgres_db:
         condition: service_healthy
+      kafka_events:
+        condition: service_healthy
     networks:
       - postgres_network
+      - kafka_network
 
   postgres_db:
     container_name: emojive-db
@@ -37,6 +40,31 @@ services:
     networks:
       - postgres_network
 
+  kafka_events:
+    container_name: emojive-events
+    image: 'bitnami/kafka:latest'
+    restart: always
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka_events:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          '/opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list || exit 1',
+        ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    networks:
+      - kafka_network
+
 networks:
   postgres_network:
+    driver: bridge
+  kafka_network:
     driver: bridge
