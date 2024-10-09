@@ -2,7 +2,7 @@ import { IncomingMessage, Server } from 'http';
 import { MessageEvent, WebSocket, WebSocketServer } from 'ws';
 import { givenRandomJson, givenRandomString } from '../utils/test-helpers';
 import {
-  default as webSocketRouter,
+  WebSocketRouter,
   default as websocketRouter,
 } from './websocket-router';
 import createWebSocketServer from './websocket.server';
@@ -20,9 +20,13 @@ describe('WebSocket Router', () => {
     _getRootNode: jest.fn(),
   };
 
+  const websocketRouterMock = jest.mocked(websocketRouter);
+
   beforeEach(() => {
     httpServer = {} as Server;
     websocketServer = new WebSocketServer({ noServer: true });
+
+    websocketRouterMock.mockReturnValue(routerMock);
   });
 
   afterEach(() => {
@@ -31,7 +35,6 @@ describe('WebSocket Router', () => {
 
   test('Create WebSocket Server', () => {
     // Setup
-    const websocketRouterMock = jest.mocked(webSocketRouter);
     const connectionHandler = {
       push: jest.fn(),
       handle: jest.fn(),
@@ -85,9 +88,6 @@ describe('WebSocket Router', () => {
     const event = givenRandomString();
     const handler = jest.fn();
 
-    const websocketRouterMock = jest.mocked(websocketRouter);
-    websocketRouterMock.mockReturnValue(routerMock);
-
     const wssServer = createWebSocketServer(httpServer, websocketServer);
 
     // Execute
@@ -101,9 +101,6 @@ describe('WebSocket Router', () => {
     // Setup
     const path = givenRandomString();
     const handler = jest.fn();
-
-    const websocketRouterMock = jest.mocked(webSocketRouter);
-    websocketRouterMock.mockReturnValue(routerMock);
 
     const wssServer = createWebSocketServer(httpServer, websocketServer);
 
@@ -119,10 +116,6 @@ describe('WebSocket Router', () => {
     const path = givenRandomString();
     const handler = jest.fn();
 
-    const websocketRouterMock = jest.mocked(websocketRouter);
-
-    websocketRouterMock.mockReturnValue(routerMock);
-
     const wssServer = createWebSocketServer(httpServer, websocketServer);
 
     // Execute
@@ -130,5 +123,19 @@ describe('WebSocket Router', () => {
 
     // Validate
     expect(routerMock.add).toHaveBeenCalledWith(path, 'message', handler);
+  });
+
+  test('use router', () => {
+    // Setup
+    const path = givenRandomString();
+    const otherRouter = {} as WebSocketRouter;
+    const wssServer = createWebSocketServer(httpServer, websocketServer);
+
+    // Execute
+    wssServer.useRouter(path, otherRouter);
+
+    // Validate
+    expect(routerMock.merge).toHaveBeenCalledTimes(1);
+    expect(routerMock.merge).toHaveBeenCalledWith(path, otherRouter);
   });
 });

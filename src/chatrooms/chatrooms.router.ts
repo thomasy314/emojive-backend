@@ -10,22 +10,4 @@ chatroomRouter.post(
   chatroomController().createChatroom
 );
 
-/*
-  on websocket connect
-
-  add consumer for chatroom topic
-*/
-
-/*
-  on websocket message
-
-  push message to chatroom topic
-*/
-
-/*
-  on websocket destroy
-
-  disconnect from kafka
-*/
-
 export default chatroomRouter;
