@@ -1,7 +1,7 @@
 import { IncomingMessage, Server } from 'http';
 import { WebSocket, WebSocketServer } from 'ws';
-import { MiddlewareFunction } from './websocket-middleware-handler';
-import websocketMidlewareLookup from './websocket-middleware-lookup';
+import { WebSocketRouterFunction } from './websocket-middleware-handler';
+import websocketRouter, { WebSocketRouter } from './websocket-router';
 
 function createWebSocketServer(
   httpServer: Server,
@@ -13,7 +13,7 @@ function createWebSocketServer(
     });
   }
 
-  const middlewareLookup = websocketMidlewareLookup();
+  const router = websocketRouter();
 
   websocketServer.addListener(
     'connection',
@@ -22,17 +22,11 @@ function createWebSocketServer(
         `http://${process.env.HOST ?? 'localhost'}${request.url}`
       );
 
-      const connectionHandler = middlewareLookup.get(
-        requestUrl.pathname,
-        'connection'
-      );
-      connectionHandler.handle(socket);
+      const connectionHandler = router.get(requestUrl.pathname, 'connection');
+      connectionHandler.handle(socket, request);
 
       socket.addListener('message', (event: MessageEvent) => {
-        const onMessageHandlers = middlewareLookup.get(
-          requestUrl.pathname,
-          'message'
-        );
+        const onMessageHandlers = router.get(requestUrl.pathname, 'message');
 
         const eventData = JSON.parse(event.toString());
         onMessageHandlers.handle(socket, eventData);
@@ -40,13 +34,16 @@ function createWebSocketServer(
     }
   );
 
-  function onWebSocketMessage(path: string, ...handlers: MiddlewareFunction[]) {
+  function onWebSocketMessage(
+    path: string,
+    ...handlers: WebSocketRouterFunction[]
+  ) {
     onWebSocketEvent(path, 'message', ...handlers);
   }
 
   function onWebSocketConnection(
     path: string,
-    ...handlers: MiddlewareFunction[]
+    ...handlers: WebSocketRouterFunction[]
   ) {
     onWebSocketEvent(path, 'connection', ...handlers);
   }
@@ -54,15 +51,20 @@ function createWebSocketServer(
   function onWebSocketEvent(
     path: string,
     event: string,
-    ...handlers: MiddlewareFunction[]
+    ...handlers: WebSocketRouterFunction[]
   ) {
-    middlewareLookup.add(path, event, ...handlers);
+    router.add(path, event, ...handlers);
+  }
+
+  function useRouter(path: string, otherRouter: WebSocketRouter) {
+    router.merge(path, otherRouter);
   }
 
   return {
     onWebSocketEvent,
     onWebSocketMessage,
     onWebSocketConnection,
+    useRouter,
     httpServer,
   };
 }
