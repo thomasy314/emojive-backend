@@ -2,14 +2,14 @@ import { WebSocket } from 'ws';
 import { ResponseError } from '../middleware/errorHandling/error.types';
 import websocketErrorHandler from './websocket-error-handler';
 
-type MiddlewareFunction = (
+type WebSocketRouterFunction = (
   socket: WebSocket,
   context: unknown,
   next: (nextProps?: NextProps) => void
 ) => void;
 
-interface WebSocketMiddlewareHandler {
-  push: (...middleware: MiddlewareFunction[]) => void;
+interface WebSocketRouterHandler {
+  push: (...middleware: WebSocketRouterFunction[]) => void;
   handle: (socket: WebSocket, context?: unknown) => void;
 }
 
@@ -18,10 +18,10 @@ type NextProps = {
   newContext?: unknown;
 };
 
-function websocketMiddlewareHandler(...middlewares: MiddlewareFunction[]) {
+function websocketMiddlewareHandler(...middlewares: WebSocketRouterFunction[]) {
   const stack = middlewares;
 
-  function push(...middleware: MiddlewareFunction[]) {
+  function push(...middleware: WebSocketRouterFunction[]) {
     stack.push(...middleware);
   }
 
@@ -73,4 +73,4 @@ function websocketMiddlewareHandler(...middlewares: MiddlewareFunction[]) {
 }
 
 export default websocketMiddlewareHandler;
-export type { MiddlewareFunction, WebSocketMiddlewareHandler };
+export type { WebSocketRouterFunction, WebSocketRouterHandler };

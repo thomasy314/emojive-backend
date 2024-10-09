@@ -1,14 +1,24 @@
 import { IncomingMessage, Server } from 'http';
 import { MessageEvent, WebSocket, WebSocketServer } from 'ws';
 import { givenRandomJson, givenRandomString } from '../utils/test-helpers';
-import websocketMiddlewareLookup from './websocket-middleware-lookup';
-import createWebSocketServer from './websocket.router';
+import {
+  default as webSocketRouter,
+  default as websocketRouter,
+} from './websocket-router';
+import createWebSocketServer from './websocket.server';
 
-jest.mock('./websocket-middleware-lookup');
+jest.mock('./websocket-router');
 
 describe('WebSocket Router', () => {
   let httpServer: Server;
   let websocketServer: WebSocketServer;
+
+  const routerMock = {
+    add: jest.fn(),
+    get: jest.fn(),
+    merge: jest.fn(),
+    _getRootNode: jest.fn(),
+  };
 
   beforeEach(() => {
     httpServer = {} as Server;
@@ -21,13 +31,7 @@ describe('WebSocket Router', () => {
 
   test('Create WebSocket Server', () => {
     // Setup
-    const websocketMiddlewareLookupMock = jest.mocked(
-      websocketMiddlewareLookup
-    );
-    const dummyHandler = {
-      push: jest.fn(),
-      handle: jest.fn(),
-    };
+    const websocketRouterMock = jest.mocked(webSocketRouter);
     const connectionHandler = {
       push: jest.fn(),
       handle: jest.fn(),
@@ -36,15 +40,12 @@ describe('WebSocket Router', () => {
       push: jest.fn(),
       handle: jest.fn(),
     };
-    const lookupMock = {
-      add: jest.fn(),
-      get: jest
-        .fn(() => dummyHandler)
-        .mockReturnValueOnce(connectionHandler)
-        .mockReturnValueOnce(messageHandler),
-      getEventhandlers: jest.fn(),
-    };
-    websocketMiddlewareLookupMock.mockReturnValue(lookupMock);
+
+    routerMock.get
+      .mockReturnValueOnce(connectionHandler)
+      .mockReturnValueOnce(messageHandler);
+
+    websocketRouterMock.mockReturnValue(routerMock);
 
     const url = `/${givenRandomString()}`;
     const incomingMessageMock = { url } as IncomingMessage;
@@ -62,17 +63,18 @@ describe('WebSocket Router', () => {
     socket.emit('message', messageEvent);
 
     // Validate
-    expect(lookupMock.get).toHaveBeenCalledTimes(2);
-    expect(lookupMock.get).toHaveBeenNthCalledWith(1, url, 'connection');
-    expect(lookupMock.get).toHaveBeenNthCalledWith(2, url, 'message');
+    expect(routerMock.get).toHaveBeenCalledTimes(2);
+    expect(routerMock.get).toHaveBeenNthCalledWith(1, url, 'connection');
+    expect(routerMock.get).toHaveBeenNthCalledWith(2, url, 'message');
 
     expect(connectionHandler.handle).toHaveBeenCalledTimes(1);
-    expect(connectionHandler.handle).toHaveBeenCalledWith(socket);
+    expect(connectionHandler.handle).toHaveBeenCalledWith(
+      socket,
+      incomingMessageMock
+    );
 
     expect(messageHandler.handle).toHaveBeenCalledTimes(1);
     expect(messageHandler.handle).toHaveBeenCalledWith(socket, eventJson);
-
-    expect(dummyHandler.handle).toHaveBeenCalledTimes(0);
 
     expect(wssServer.httpServer).toBe(httpServer);
   });
@@ -83,15 +85,8 @@ describe('WebSocket Router', () => {
     const event = givenRandomString();
     const handler = jest.fn();
 
-    const websocketMiddlewareLookupMock = jest.mocked(
-      websocketMiddlewareLookup
-    );
-    const lookupMock = {
-      add: jest.fn(),
-      get: jest.fn(),
-      getEventhandlers: jest.fn(),
-    };
-    websocketMiddlewareLookupMock.mockReturnValue(lookupMock);
+    const websocketRouterMock = jest.mocked(websocketRouter);
+    websocketRouterMock.mockReturnValue(routerMock);
 
     const wssServer = createWebSocketServer(httpServer, websocketServer);
 
@@ -99,7 +94,7 @@ describe('WebSocket Router', () => {
     wssServer.onWebSocketEvent(path, event, handler);
 
     // Validate
-    expect(lookupMock.add).toHaveBeenCalledWith(path, event, handler);
+    expect(routerMock.add).toHaveBeenCalledWith(path, event, handler);
   });
 
   test('on websocket connection', () => {
@@ -107,15 +102,8 @@ describe('WebSocket Router', () => {
     const path = givenRandomString();
     const handler = jest.fn();
 
-    const websocketMiddlewareLookupMock = jest.mocked(
-      websocketMiddlewareLookup
-    );
-    const lookupMock = {
-      add: jest.fn(),
-      get: jest.fn(),
-      getEventhandlers: jest.fn(),
-    };
-    websocketMiddlewareLookupMock.mockReturnValue(lookupMock);
+    const websocketRouterMock = jest.mocked(webSocketRouter);
+    websocketRouterMock.mockReturnValue(routerMock);
 
     const wssServer = createWebSocketServer(httpServer, websocketServer);
 
@@ -123,7 +111,7 @@ describe('WebSocket Router', () => {
     wssServer.onWebSocketConnection(path, handler);
 
     // Validate
-    expect(lookupMock.add).toHaveBeenCalledWith(path, 'connection', handler);
+    expect(routerMock.add).toHaveBeenCalledWith(path, 'connection', handler);
   });
 
   test('on websocket message', () => {
@@ -131,15 +119,9 @@ describe('WebSocket Router', () => {
     const path = givenRandomString();
     const handler = jest.fn();
 
-    const websocketMiddlewareLookupMock = jest.mocked(
-      websocketMiddlewareLookup
-    );
-    const lookupMock = {
-      add: jest.fn(),
-      get: jest.fn(),
-      getEventhandlers: jest.fn(),
-    };
-    websocketMiddlewareLookupMock.mockReturnValue(lookupMock);
+    const websocketRouterMock = jest.mocked(websocketRouter);
+
+    websocketRouterMock.mockReturnValue(routerMock);
 
     const wssServer = createWebSocketServer(httpServer, websocketServer);
 
@@ -147,6 +129,6 @@ describe('WebSocket Router', () => {
     wssServer.onWebSocketMessage(path, handler);
 
     // Validate
-    expect(lookupMock.add).toHaveBeenCalledWith(path, 'message', handler);
+    expect(routerMock.add).toHaveBeenCalledWith(path, 'message', handler);
   });
 });
