@@ -7,7 +7,7 @@ const chatroomRouter = Router();
 chatroomRouter.post(
   '/create',
   createCharoomValidator,
-  chatroomController().createChatroom
+  chatroomController.createChatroom
 );
 
 export default chatroomRouter;

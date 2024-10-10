@@ -3,7 +3,7 @@ import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
 import createWebSocketValidator, {
   getConnectionContextData,
-} from '../../websocket/websocket.Validator';
+} from '../../websocket/websocket.validator';
 
 type JoinChatroomSchema = {
   chatroomUUID: string;
