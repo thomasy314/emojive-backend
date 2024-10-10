@@ -28,7 +28,7 @@ describe('WebSocket Router', () => {
     const router = websocketRouter();
 
     // Add handler
-    router.add(path, event, handlerFunction);
+    router.on(path, event, handlerFunction);
 
     // Get handler
     const returnedHandler = router.get(path, event);
@@ -64,18 +64,14 @@ describe('WebSocket Router', () => {
       const path2 = pathPrefix(givenRandomString());
       const path3 = pathPrefix(givenRandomString());
 
-      const eventPrefix = prefix('event');
-      const event1 = eventPrefix(givenRandomString());
-      const event2 = eventPrefix(givenRandomString());
-
       const handlerFunction1 = jest.fn();
       const handlerFunction2 = jest.fn();
 
       const router = websocketRouter();
-      router.add(path1, event1, handlerFunction1);
+      router.onWebSocketConnection(path1, handlerFunction1);
 
       const otherRouter = websocketRouter();
-      otherRouter.add(path2, event2, handlerFunction2);
+      otherRouter.onWebSocketMessage(path2, handlerFunction2);
 
       // Execute
       router.merge(path3, otherRouter);
@@ -92,7 +88,7 @@ describe('WebSocket Router', () => {
                   {
                     children: new Map([
                       [
-                        event1,
+                        'connection',
                         {
                           children: new Map(),
                           handler: {
@@ -114,7 +110,7 @@ describe('WebSocket Router', () => {
                         {
                           children: new Map([
                             [
-                              event2,
+                              'message',
                               {
                                 children: new Map(),
                                 handler: {
@@ -153,7 +149,7 @@ describe('WebSocket Router', () => {
       const handlerFunction1 = jest.fn();
 
       const router = websocketRouter();
-      router.add(path1, event1, handlerFunction1);
+      router.on(path1, event1, handlerFunction1);
 
       const otherRouter = websocketRouter();
 

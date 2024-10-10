@@ -1,6 +1,6 @@
 import { ErrorObject } from 'ajv';
 
-export const parseErrors = async (validationErrors: ErrorObject[]) => {
+function parseErrors(validationErrors: ErrorObject[]) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const errors: any[] = [];
   validationErrors.forEach(error => {
@@ -11,4 +11,6 @@ export const parseErrors = async (validationErrors: ErrorObject[]) => {
     });
   });
   return errors;
-};
+}
+
+export { parseErrors };

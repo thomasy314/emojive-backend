@@ -1,7 +1,7 @@
 import { JSONSchemaType } from 'ajv';
 import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
-import createValidator from '../../middleware/validation/validator';
+import createExpressValidator from '../../middleware/validation/express.Validator';
 
 type CreateChatroomSchema = {
   chatroomName: string;
@@ -48,6 +48,6 @@ const createChatroomScheam: JSONSchemaType<CreateChatroomSchema> = {
 
 const validateCreateChatroom = ajv.compile(createChatroomScheam);
 
-const createCharoomValidator = createValidator(validateCreateChatroom);
+const createCharoomValidator = createExpressValidator(validateCreateChatroom);
 
 export { createCharoomValidator };

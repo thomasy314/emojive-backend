@@ -10,6 +10,7 @@ describe('Express Error Handler', () => {
   test('GIVEN thrown error THEN error is sent to client', () => {
     // Setup
     const socket = {} as WebSocket;
+    socket.send = jest.fn();
     socket.close = jest.fn();
 
     const responseError = givenRandomResponseError(
@@ -23,13 +24,19 @@ describe('Express Error Handler', () => {
     websocketErrorHandler(responseError, socket);
 
     // Validate
-    expect(socket.close).toHaveBeenCalledTimes(1);
-    expect(socket.close).toHaveBeenCalledWith(
-      responseError.status,
+    expect(socket.send).toHaveBeenCalledTimes(1);
+    expect(socket.send).toHaveBeenCalledWith(
       JSON.stringify({
+        status: responseError.status,
         error: responseError.externalMessage,
         ...responseError.json,
       })
+    );
+
+    expect(socket.close).toHaveBeenCalledTimes(1);
+    expect(socket.close).toHaveBeenCalledWith(
+      responseError.status,
+      'See previous websocket message for details'
     );
   });
 });

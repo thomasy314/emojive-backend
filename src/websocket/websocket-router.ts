@@ -9,9 +9,17 @@ type WebSocketRouterNode = {
 };
 
 interface WebSocketRouter {
-  add: (
+  on: (
     path: string,
     event: string,
+    ...handlers: WebSocketRouterFunction[]
+  ) => void;
+  onWebSocketMessage: (
+    path: string,
+    ...handlers: WebSocketRouterFunction[]
+  ) => void;
+  onWebSocketConnection: (
+    path: string,
     ...handlers: WebSocketRouterFunction[]
   ) => void;
   merge: (path: string, otherRouter: WebSocketRouter) => void;
@@ -52,7 +60,7 @@ function websocketRouter(): WebSocketRouter {
     return curNode.handler;
   }
 
-  function add(
+  function on(
     path: string,
     event: string,
     ...handlers: WebSocketRouterFunction[]
@@ -62,6 +70,20 @@ function websocketRouter(): WebSocketRouter {
     const handler = leafNode.handler ?? websocketMiddlewareHandler();
     handler.push(...handlers);
     leafNode.handler = handler;
+  }
+
+  function onWebSocketMessage(
+    path: string,
+    ...handlers: WebSocketRouterFunction[]
+  ) {
+    on(path, 'message', ...handlers);
+  }
+
+  function onWebSocketConnection(
+    path: string,
+    ...handlers: WebSocketRouterFunction[]
+  ) {
+    on(path, 'connection', ...handlers);
   }
 
   function merge(path: string, otherRouter: WebSocketRouter) {
@@ -104,7 +126,9 @@ function websocketRouter(): WebSocketRouter {
   }
 
   return {
-    add,
+    on,
+    onWebSocketMessage,
+    onWebSocketConnection,
     get,
     _getRootNode,
     merge,

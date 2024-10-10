@@ -14,7 +14,9 @@ describe('WebSocket Router', () => {
   let websocketServer: WebSocketServer;
 
   const routerMock = {
-    add: jest.fn(),
+    on: jest.fn(),
+    onWebSocketMessage: jest.fn(),
+    onWebSocketConnection: jest.fn(),
     get: jest.fn(),
     merge: jest.fn(),
     _getRootNode: jest.fn(),
@@ -94,7 +96,7 @@ describe('WebSocket Router', () => {
     wssServer.onWebSocketEvent(path, event, handler);
 
     // Validate
-    expect(routerMock.add).toHaveBeenCalledWith(path, event, handler);
+    expect(routerMock.on).toHaveBeenCalledWith(path, event, handler);
   });
 
   test('on websocket connection', () => {
@@ -108,7 +110,7 @@ describe('WebSocket Router', () => {
     wssServer.onWebSocketConnection(path, handler);
 
     // Validate
-    expect(routerMock.add).toHaveBeenCalledWith(path, 'connection', handler);
+    expect(routerMock.on).toHaveBeenCalledWith(path, 'connection', handler);
   });
 
   test('on websocket message', () => {
@@ -122,7 +124,7 @@ describe('WebSocket Router', () => {
     wssServer.onWebSocketMessage(path, handler);
 
     // Validate
-    expect(routerMock.add).toHaveBeenCalledWith(path, 'message', handler);
+    expect(routerMock.on).toHaveBeenCalledWith(path, 'message', handler);
   });
 
   test('use router', () => {

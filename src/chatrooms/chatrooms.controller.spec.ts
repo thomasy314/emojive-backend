@@ -64,7 +64,7 @@ describe('Chatroom Controller', () => {
       mockedCreateChatroom.mockResolvedValueOnce(responseData);
 
       // Execute
-      await chatroomController().createChatroom(request, response, next);
+      await chatroomController.createChatroom(request, response, next);
 
       // Validate
       expect(mockedCreateChatroom).toHaveBeenCalledTimes(1);
@@ -94,7 +94,7 @@ describe('Chatroom Controller', () => {
       mockedCreateChatroom.mockRejectedValueOnce('Evil');
 
       // Execute
-      await chatroomController().createChatroom(request, response, next);
+      await chatroomController.createChatroom(request, response, next);
 
       // Validate
       expect(mockedCreateChatroom).toHaveBeenCalledTimes(1);

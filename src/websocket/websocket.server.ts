@@ -1,5 +1,6 @@
 import { IncomingMessage, Server } from 'http';
 import { WebSocket, WebSocketServer } from 'ws';
+import { urlEndToURL } from '../utils/url-helpers';
 import { WebSocketRouterFunction } from './websocket-middleware-handler';
 import websocketRouter, { WebSocketRouter } from './websocket-router';
 
@@ -18,9 +19,7 @@ function createWebSocketServer(
   websocketServer.addListener(
     'connection',
     (socket: WebSocket, request: IncomingMessage) => {
-      const requestUrl = new URL(
-        `http://${process.env.HOST ?? 'localhost'}${request.url}`
-      );
+      const requestUrl = urlEndToURL(request.url);
 
       const connectionHandler = router.get(requestUrl.pathname, 'connection');
       connectionHandler.handle(socket, request);
@@ -53,7 +52,7 @@ function createWebSocketServer(
     event: string,
     ...handlers: WebSocketRouterFunction[]
   ) {
-    router.add(path, event, ...handlers);
+    router.on(path, event, ...handlers);
   }
 
   function useRouter(path: string, otherRouter: WebSocketRouter) {
