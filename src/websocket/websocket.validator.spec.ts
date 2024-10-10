@@ -3,7 +3,7 @@ import { WebSocket } from 'ws';
 import ajv from '../middleware/validation/ajv';
 import createWebSocketValidator, {
   getConnectionContextData,
-} from './websocket.Validator';
+} from './websocket.validator';
 
 describe('WebSocket Validator', () => {
   describe('Create WebSocket Validator', () => {
