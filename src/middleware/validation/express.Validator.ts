@@ -3,12 +3,14 @@ import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { ResponseError } from '../errorHandling/error.types';
 import { parseErrors } from './ajv-errors';
 
-function createValidator(validateFunction: ValidateFunction): RequestHandler {
+function createExpressValidator(
+  validateFunction: ValidateFunction
+): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
     const isValid = validateFunction(req.body);
     if (!isValid && validateFunction.errors) {
       // If schema validation failed and error occurred return with formatted error message
-      const errors = await parseErrors(validateFunction.errors);
+      const errors = parseErrors(validateFunction.errors);
       const responseError: ResponseError = {
         status: 400,
         error: new Error('Input Validation Error'),
@@ -23,4 +25,4 @@ function createValidator(validateFunction: ValidateFunction): RequestHandler {
   };
 }
 
-export default createValidator;
+export default createExpressValidator;

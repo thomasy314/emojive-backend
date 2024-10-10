@@ -8,23 +8,22 @@ type WebsocketErrorHandler = (
   socket: WebSocket
 ) => ResponseError;
 
-function websocketErrorHandler(
+async function websocketErrorHandler(
   err: ResponseError | Error,
   socket: WebSocket
-): ResponseError {
-  const finalResponseError = errorHandler(
-    webSocketCloseCode.INTERNAL_ERROR,
-    err
-  );
-
+): Promise<ResponseError> {
+  const formattedError = errorHandler(webSocketCloseCode.INTERNAL_ERROR, err);
+  const errorResponse = JSON.stringify({
+    status: formattedError.status,
+    error: formattedError.externalMessage,
+    ...formattedError.json,
+  });
+  socket.send(errorResponse);
   socket.close(
-    finalResponseError.status,
-    JSON.stringify({
-      error: finalResponseError.externalMessage,
-      ...finalResponseError.json,
-    })
+    formattedError.status,
+    'See previous websocket message for details'
   );
-  return finalResponseError;
+  return formattedError;
 }
 
 export default websocketErrorHandler;

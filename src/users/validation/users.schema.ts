@@ -1,7 +1,7 @@
 import { JSONSchemaType } from 'ajv';
 import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
-import createValidator from '../../middleware/validation/validator';
+import createExpressValidator from '../../middleware/validation/express.Validator';
 
 type UserSchema = {
   userName: string;
@@ -73,6 +73,6 @@ const userSchema: JSONSchemaType<UserSchema> = {
 
 const validateUser = ajv.compile(userSchema);
 
-const userValidator = createValidator(validateUser);
+const userValidator = createExpressValidator(validateUser);
 
 export { userValidator };

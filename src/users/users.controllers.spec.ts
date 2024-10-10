@@ -58,7 +58,7 @@ describe('Users Controller', () => {
       mockedCreateUser.mockResolvedValueOnce(responseData);
 
       // Execute
-      await userController().createUser(request, response, next);
+      await userController.createUser(request, response, next);
 
       // Validate
       expect(userService().createUser).toHaveBeenCalledTimes(1);
@@ -91,7 +91,7 @@ describe('Users Controller', () => {
     mockedCreateUser.mockRejectedValueOnce('Evil');
 
     // Execute
-    await userController().createUser(request, response, next);
+    await userController.createUser(request, response, next);
 
     // Validate
     expect(userService().createUser).toHaveBeenCalledTimes(1);

@@ -22,4 +22,4 @@ function chatroomController() {
   };
 }
 
-export default chatroomController;
+export default chatroomController();
