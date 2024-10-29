@@ -1,30 +1,15 @@
 import { Kafka } from 'kafkajs';
+import kafkaConfig from '../../config/kafka.config';
 
-function kafkaEvents() {
-  let kafkaClient: Kafka | undefined;
-
-  function initKafka(initClient: Kafka) {
-    kafkaClient = initClient;
-  }
-
+function kafkaEvents(kafkaClient: Kafka) {
   function getKafka(): Kafka {
-    if (kafkaClient === undefined) {
-      throw new Error(
-        'kafka client is undefined, please initialize with initKafka(kafkaClient: Kafka)'
-      );
-    }
     return kafkaClient;
   }
 
-  function destroy() {
-    kafkaClient = undefined;
-  }
-
   return {
-    initKafka,
     getKafka,
-    destroy,
   };
 }
 
-export default kafkaEvents();
+export default kafkaEvents(new Kafka(kafkaConfig));
+export { kafkaEvents as createKafkaEvents };

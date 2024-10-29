@@ -13,14 +13,12 @@ describe('WebSocket Router', () => {
   let httpServer: Server;
   let websocketServer: WebSocketServer;
 
+  const routerGetFunction = jest.fn();
   const routerMock = {
     on: jest.fn(),
-    onWebSocketMessage: jest.fn(),
-    onWebSocketConnection: jest.fn(),
-    get: jest.fn(),
+    get: routerGetFunction,
     merge: jest.fn(),
-    _getRootNode: jest.fn(),
-  };
+  } as unknown as WebSocketRouter;
 
   const websocketRouterMock = jest.mocked(websocketRouter);
 
@@ -35,109 +33,173 @@ describe('WebSocket Router', () => {
     jest.clearAllMocks();
   });
 
-  test('Create WebSocket Server', () => {
-    // Setup
-    const connectionHandler = {
-      push: jest.fn(),
-      handle: jest.fn(),
-    };
-    const messageHandler = {
-      push: jest.fn(),
-      handle: jest.fn(),
-    };
+  describe('Registering Events', () => {
+    test('GIVEN websocket event WHEN registering THEN should call router on method', () => {
+      const path = givenRandomString();
+      const event = givenRandomString();
+      const handler = jest.fn();
 
-    routerMock.get
-      .mockReturnValueOnce(connectionHandler)
-      .mockReturnValueOnce(messageHandler);
+      const wssServer = createWebSocketServer(httpServer, websocketServer);
+      wssServer.onWebSocketEvent(path, event, handler);
 
-    websocketRouterMock.mockReturnValue(routerMock);
+      expect(routerMock.on).toHaveBeenCalledWith(path, event, handler);
+    });
 
-    const url = `/${givenRandomString()}`;
-    const incomingMessageMock = { url } as IncomingMessage;
+    test('GIVEN websocket connection WHEN registering THEN should call router on method with connection event', () => {
+      const path = givenRandomString();
+      const handler = jest.fn();
 
-    // @ts-expect-error - constructor needs to define client options to avoid issue with autoPong setting
-    // https://github.com/websockets/ws/issues/2188
-    const socket = new WebSocket(null, undefined, {});
-    const messageEvent = {} as MessageEvent;
-    const eventJson = givenRandomJson();
-    messageEvent.toString = () => JSON.stringify(eventJson);
+      const wssServer = createWebSocketServer(httpServer, websocketServer);
+      wssServer.onWebSocketConnection(path, handler);
 
-    // Execute
-    const wssServer = createWebSocketServer(httpServer, websocketServer);
-    websocketServer.emit('connection', socket, incomingMessageMock);
-    socket.emit('message', messageEvent);
+      expect(routerMock.on).toHaveBeenCalledWith(path, 'connection', handler);
+    });
 
-    // Validate
-    expect(routerMock.get).toHaveBeenCalledTimes(2);
-    expect(routerMock.get).toHaveBeenNthCalledWith(1, url, 'connection');
-    expect(routerMock.get).toHaveBeenNthCalledWith(2, url, 'message');
+    test('GIVEN websocket message WHEN registering THEN should call router on method with message event', () => {
+      const path = givenRandomString();
+      const handler = jest.fn();
 
-    expect(connectionHandler.handle).toHaveBeenCalledTimes(1);
-    expect(connectionHandler.handle).toHaveBeenCalledWith(
-      socket,
-      incomingMessageMock
-    );
+      const wssServer = createWebSocketServer(httpServer, websocketServer);
+      wssServer.onWebSocketMessage(path, handler);
 
-    expect(messageHandler.handle).toHaveBeenCalledTimes(1);
-    expect(messageHandler.handle).toHaveBeenCalledWith(socket, eventJson);
+      expect(routerMock.on).toHaveBeenCalledWith(path, 'message', handler);
+    });
 
-    expect(wssServer.httpServer).toBe(httpServer);
+    test('GIVEN router WHEN using THEN should call router merge method', () => {
+      const path = givenRandomString();
+      const otherRouter = {} as WebSocketRouter;
+
+      const wssServer = createWebSocketServer(httpServer, websocketServer);
+      wssServer.useRouter(path, otherRouter);
+
+      expect(routerMock.merge).toHaveBeenCalledWith(path, otherRouter);
+    });
   });
 
-  test('on websocket event', () => {
-    // Setup
-    const path = givenRandomString();
-    const event = givenRandomString();
-    const handler = jest.fn();
+  describe('Handle Events', () => {
+    let url: string;
+    let incomingMessageMock: IncomingMessage;
+    let socket: WebSocket;
 
-    const wssServer = createWebSocketServer(httpServer, websocketServer);
+    const eventHandler = { handle: jest.fn() };
 
-    // Execute
-    wssServer.onWebSocketEvent(path, event, handler);
+    beforeEach(() => {
+      url = `/${givenRandomString()}`;
+      incomingMessageMock = { url } as IncomingMessage;
 
-    // Validate
-    expect(routerMock.on).toHaveBeenCalledWith(path, event, handler);
-  });
+      // @ts-expect-error - null input is not included in types
+      socket = new WebSocket(null, undefined, {});
+      jest.spyOn(socket, 'send').mockImplementation(jest.fn());
 
-  test('on websocket connection', () => {
-    // Setup
-    const path = givenRandomString();
-    const handler = jest.fn();
+      routerGetFunction
+        .mockReturnValueOnce(eventHandler)
+        .mockReturnValueOnce(eventHandler);
+    });
 
-    const wssServer = createWebSocketServer(httpServer, websocketServer);
+    test('GIVEN websocket connection WHEN handling THEN should call router get method and event handler', () => {
+      // Setup
+      const wssServer = createWebSocketServer(httpServer, websocketServer);
 
-    // Execute
-    wssServer.onWebSocketConnection(path, handler);
+      // Execute
+      websocketServer.emit('connection', socket, incomingMessageMock);
 
-    // Validate
-    expect(routerMock.on).toHaveBeenCalledWith(path, 'connection', handler);
-  });
+      // Validate
+      expect(routerMock.get).toHaveBeenCalledTimes(1);
+      expect(routerMock.get).toHaveBeenCalledWith(url, 'connection');
 
-  test('on websocket message', () => {
-    // Setup
-    const path = givenRandomString();
-    const handler = jest.fn();
+      expect(eventHandler.handle).toHaveBeenCalledTimes(1);
+      expect(eventHandler.handle).toHaveBeenCalledWith(
+        socket,
+        incomingMessageMock
+      );
 
-    const wssServer = createWebSocketServer(httpServer, websocketServer);
+      expect(wssServer.httpServer).toBe(httpServer);
+    });
 
-    // Execute
-    wssServer.onWebSocketMessage(path, handler);
+    describe('Handle Websocket Messages', () => {
+      test('GIVEN websocket message WHEN handling THEN should call router get method and event handler', () => {
+        // Setup
+        const messageEvent = {} as MessageEvent;
+        const eventJson = givenRandomJson();
+        messageEvent.toString = () => JSON.stringify(eventJson);
 
-    // Validate
-    expect(routerMock.on).toHaveBeenCalledWith(path, 'message', handler);
-  });
+        const wssServer = createWebSocketServer(httpServer, websocketServer);
 
-  test('use router', () => {
-    // Setup
-    const path = givenRandomString();
-    const otherRouter = {} as WebSocketRouter;
-    const wssServer = createWebSocketServer(httpServer, websocketServer);
+        // Execute
+        websocketServer.emit('connection', socket, incomingMessageMock);
+        socket.emit('message', messageEvent);
 
-    // Execute
-    wssServer.useRouter(path, otherRouter);
+        // Validate
+        expect(routerMock.get).toHaveBeenCalledTimes(2);
+        expect(routerMock.get).toHaveBeenNthCalledWith(1, url, 'connection');
+        expect(routerMock.get).toHaveBeenNthCalledWith(2, url, 'message');
 
-    // Validate
-    expect(routerMock.merge).toHaveBeenCalledTimes(1);
-    expect(routerMock.merge).toHaveBeenCalledWith(path, otherRouter);
+        expect(eventHandler.handle).toHaveBeenCalledTimes(2);
+        expect(eventHandler.handle).toHaveBeenNthCalledWith(
+          1,
+          socket,
+          incomingMessageMock
+        );
+        expect(eventHandler.handle).toHaveBeenNthCalledWith(2, socket, {
+          message: eventJson,
+          ...incomingMessageMock,
+        });
+
+        expect(wssServer.httpServer).toBe(httpServer);
+      });
+
+      test('GIVEN websocket message with invalid JSON WHEN handling THEN should call router get method and event handler', () => {
+        // Setup
+        const messageEvent = {} as MessageEvent;
+        const invalidJson = '{invalidJson}';
+        messageEvent.toString = () => invalidJson;
+
+        const wssServer = createWebSocketServer(httpServer, websocketServer);
+
+        // Execute
+        websocketServer.emit('connection', socket, incomingMessageMock);
+        socket.emit('message', messageEvent);
+
+        // Validate
+        expect(routerMock.get).toHaveBeenCalledTimes(2);
+        expect(routerMock.get).toHaveBeenNthCalledWith(1, url, 'connection');
+        expect(routerMock.get).toHaveBeenNthCalledWith(2, url, 'message');
+
+        expect(eventHandler.handle).toHaveBeenCalledTimes(1);
+        expect(eventHandler.handle).toHaveBeenNthCalledWith(
+          1,
+          socket,
+          incomingMessageMock
+        );
+
+        expect(wssServer.httpServer).toBe(httpServer);
+      });
+    });
+
+    test('GIVEN websocket close event WHEN handling THEN should call router get method and event handler', () => {
+      // Setup
+      const closeCode = 1000;
+      const closeReason = Buffer.from(givenRandomString());
+
+      const wssServer = createWebSocketServer(httpServer, websocketServer);
+
+      // Execute
+      websocketServer.emit('connection', socket, incomingMessageMock);
+      socket.emit('close', closeCode, closeReason);
+
+      // Validate
+      expect(routerMock.get).toHaveBeenCalledTimes(2);
+      expect(routerMock.get).toHaveBeenNthCalledWith(1, url, 'connection');
+      expect(routerMock.get).toHaveBeenNthCalledWith(2, url, 'close');
+
+      expect(eventHandler.handle).toHaveBeenCalledTimes(2);
+      expect(eventHandler.handle).toHaveBeenCalledWith(socket, {
+        code: closeCode,
+        reason: closeReason,
+        ...incomingMessageMock,
+      });
+
+      expect(wssServer.httpServer).toBe(httpServer);
+    });
   });
 });

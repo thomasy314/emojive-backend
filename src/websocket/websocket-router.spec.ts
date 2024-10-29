@@ -159,4 +159,23 @@ describe('WebSocket Router', () => {
       );
     });
   });
+
+  test('GIVEN a path and handler for WebSocket close event THEN handler is added to router', () => {
+    // Setup
+    const path = givenRandomString();
+    const handlerFunction = jest.fn();
+
+    const router = websocketRouter();
+
+    // Add handler
+    router.onWebSocketClose(path, handlerFunction);
+
+    // Get handler
+    const returnedHandler = router.get(path, 'close');
+
+    // Validate
+    expect(websocketMiddlewareHandler).toHaveBeenCalledTimes(1);
+
+    expect(returnedHandler).toBe(handler);
+  });
 });

@@ -1,6 +1,15 @@
-import { createChatroomQuery } from './db/chatrooms.queries';
+import { Kafka } from 'kafkajs';
+import { EventBusEvent } from '../events/events.types';
+import kafkaEvents from '../events/kafka';
+import createKafkaAdmin from '../events/kafka/kafka.admin';
+import createKafkaLedger from '../events/kafka/kafka.ledger';
+import {
+  createChatroomQuery,
+  createChatroomUserLinkQuery,
+  deleteChatroomUserLinkQuery,
+} from './db/chatrooms.queries';
 
-function chatroomService() {
+function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
   async function createChatroom(
     chatroomName: string,
     isPublic: boolean,
@@ -13,6 +22,10 @@ function chatroomService() {
     );
     const createChatroomData = createChatroomResult.rows[0];
 
+    const eventAdmin = await createKafkaAdmin(kafka);
+
+    eventAdmin.createTopic(createChatroomData.chatroom_uuid, 1);
+
     return {
       chatroomUUID: createChatroomData.chatroom_uuid,
       chatroomName: createChatroomData.chatroom_name,
@@ -21,9 +34,52 @@ function chatroomService() {
     };
   }
 
+  async function joinChatroom(
+    chatroomUUID: string,
+    userUUID: string,
+    onMessage: (message: object) => void
+  ) {
+    await createChatroomUserLinkQuery(chatroomUUID, userUUID);
+
+    const eventConsumer = await ledger.addConsumer(userUUID, [chatroomUUID]);
+
+    eventConsumer.setEventHandler(message => {
+      onMessage(message);
+    });
+
+    ledger.addProducer(chatroomUUID);
+  }
+
+  async function receiveChatroomMessage(
+    chatroomUUID: string,
+    userUUID: string,
+    message: object
+  ): Promise<void> {
+    const eventBusMessage: EventBusEvent = {
+      key: userUUID,
+      value: { message, sender: userUUID },
+    };
+
+    ledger.submitEvent(chatroomUUID, eventBusMessage);
+  }
+
+  async function leaveChatroom(
+    chatroomUUID: string,
+    userUUID: string
+  ): Promise<void> {
+    await deleteChatroomUserLinkQuery(chatroomUUID, userUUID);
+
+    ledger.removeConsumer(userUUID);
+    ledger.removeProducer(chatroomUUID);
+  }
+
   return {
     createChatroom,
+    joinChatroom,
+    leaveChatroom,
+    receiveChatroomMessage,
   };
 }
 
-export default chatroomService;
+export default chatroomService(kafkaEvents.getKafka());
+export { chatroomService as createChatroomService };
