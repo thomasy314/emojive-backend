@@ -59,5 +59,35 @@ describe('languages service', () => {
         expect(error).toStrictEqual(Error('Invalid language tag: invalid tag'));
       }
     });
+
+    test('GIVEN language tag with script THEN function returns transformed obj', () => {
+      // Setup
+      const languageTag = 'zh-Hant';
+
+      // Execute
+      const languageTagObj =
+        languagesService().languageTagToLanguageTagObj(languageTag);
+
+      // Validate
+      expect(languageTagObj).toStrictEqual({
+        languageCode: 'zh',
+        regionCode: null,
+      });
+    });
+
+    test('GIVEN language tag with script and region THEN function returns transformed obj', () => {
+      // Setup
+      const languageTag = 'zh-Hant-TW';
+
+      // Execute
+      const languageTagObj =
+        languagesService().languageTagToLanguageTagObj(languageTag);
+
+      // Validate
+      expect(languageTagObj).toStrictEqual({
+        languageCode: 'zh',
+        regionCode: 'TW',
+      });
+    });
   });
 });
