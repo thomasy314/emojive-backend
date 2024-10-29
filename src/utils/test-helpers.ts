@@ -93,8 +93,9 @@ export function givenLanguageTag(
   };
 }
 
-export function givenRandomJson() {
+export function givenRandomJson(additionalJson?: object) {
   return {
     [givenRandomString()]: givenRandomString(),
+    ...additionalJson,
   };
 }

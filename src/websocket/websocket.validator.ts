@@ -8,19 +8,36 @@ import { WebSocketRouterFunction } from './websocket-middleware-handler';
 
 type GetContextDataFunction = (context: unknown) => object;
 
-function getConnectionContextData(context: unknown) {
+function getConnectionParamContextData(context: unknown) {
   const incomingMessage = context as IncomingMessage;
   return Object.fromEntries(
     urlEndToURL(incomingMessage.url).searchParams.entries()
   );
 }
 
+function getConnectionMessageContextData(context: unknown) {
+  const message = context as { message: object };
+  return {
+    message: message.message,
+  };
+}
+
+function getConnectionCloseContextData(context: unknown) {
+  const closeData = context as { code: number; reason: Buffer };
+  return {
+    closeCode: closeData.code,
+    closeReason: closeData.reason.toString(),
+  };
+}
+
 function createWebSocketValidator(
   validateFunction: ValidateFunction,
-  getContextDataFuntcion: GetContextDataFunction
+  ...getContextDataFunctions: GetContextDataFunction[]
 ): WebSocketRouterFunction {
   return async (socket, context, next): Promise<void> => {
-    const data = getContextDataFuntcion(context);
+    const data = getContextDataFunctions.reduce((acc, fn) => {
+      return { ...acc, ...fn(context) };
+    }, {});
 
     const isValid = validateFunction(data);
 
@@ -36,9 +53,13 @@ function createWebSocketValidator(
       return;
     }
 
-    next(); // If no error occurred proceed further
+    next({ newContext: data }); // If no error occurred proceed further
   };
 }
 
 export default createWebSocketValidator;
-export { getConnectionContextData };
+export {
+  getConnectionCloseContextData,
+  getConnectionMessageContextData,
+  getConnectionParamContextData,
+};

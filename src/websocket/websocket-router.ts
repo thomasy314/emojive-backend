@@ -22,6 +22,10 @@ interface WebSocketRouter {
     path: string,
     ...handlers: WebSocketRouterFunction[]
   ) => void;
+  onWebSocketClose: (
+    path: string,
+    ...handlers: WebSocketRouterFunction[]
+  ) => void;
   merge: (path: string, otherRouter: WebSocketRouter) => void;
   get: (path: string, event: string) => WebSocketRouterHandler;
   _getRootNode: () => WebSocketRouterNode;
@@ -86,6 +90,13 @@ function websocketRouter(): WebSocketRouter {
     on(path, 'connection', ...handlers);
   }
 
+  function onWebSocketClose(
+    path: string,
+    ...handlers: WebSocketRouterFunction[]
+  ) {
+    on(path, 'close', ...handlers);
+  }
+
   function merge(path: string, otherRouter: WebSocketRouter) {
     const leafNode = _buildLeafNode(routerRoot, path);
 
@@ -129,6 +140,7 @@ function websocketRouter(): WebSocketRouter {
     on,
     onWebSocketMessage,
     onWebSocketConnection,
+    onWebSocketClose,
     get,
     _getRootNode,
     merge,

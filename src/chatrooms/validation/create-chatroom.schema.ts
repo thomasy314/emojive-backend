@@ -1,7 +1,7 @@
 import { JSONSchemaType } from 'ajv';
 import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
-import createExpressValidator from '../../middleware/validation/express.Validator';
+import createExpressValidator from '../../middleware/validation/express.validator';
 
 type CreateChatroomSchema = {
   chatroomName: string;

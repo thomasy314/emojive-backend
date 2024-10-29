@@ -1,8 +1,10 @@
 import { IncomingMessage, Server } from 'http';
 import { WebSocket, WebSocketServer } from 'ws';
+import catchError from '../utils/catch-error';
 import { urlEndToURL } from '../utils/url-helpers';
 import { WebSocketRouterFunction } from './websocket-middleware-handler';
 import websocketRouter, { WebSocketRouter } from './websocket-router';
+import { WebSocketError } from './websocket.message-schema';
 
 function createWebSocketServer(
   httpServer: Server,
@@ -24,11 +26,38 @@ function createWebSocketServer(
       const connectionHandler = router.get(requestUrl.pathname, 'connection');
       connectionHandler.handle(socket, request);
 
-      socket.addListener('message', (event: MessageEvent) => {
+      socket.addListener('message', async (event: MessageEvent) => {
         const onMessageHandlers = router.get(requestUrl.pathname, 'message');
 
-        const eventData = JSON.parse(event.toString());
+        const [error, message] = catchError(() => JSON.parse(event.toString()));
+
+        if (error) {
+          const errorMessage: WebSocketError = {
+            error: 'invalid JSON',
+            details: event.toString(),
+          };
+          socket.send(JSON.stringify(errorMessage));
+          return;
+        }
+
+        const eventData = {
+          message,
+          ...request,
+        };
+
         onMessageHandlers.handle(socket, eventData);
+      });
+
+      socket.addListener('close', (code: number, reason: Buffer) => {
+        const onCloseHandlers = router.get(requestUrl.pathname, 'close');
+
+        const eventData = {
+          code,
+          reason,
+          ...request,
+        };
+
+        onCloseHandlers.handle(socket, eventData);
       });
     }
   );
