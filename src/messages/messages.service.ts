@@ -1,3 +1,4 @@
+import { findUserByUUIDQuery } from '../users/db/users.queries';
 import {
   ChatMessageData,
   ChatMessageSchema,
@@ -24,7 +25,7 @@ function messageService(): MessageService {
       processorLookup[message.messageType as keyof typeof processorLookup] ??
       _defaultMessageProcessor;
 
-    return processor(message, messageData);
+    return await processor(message, messageData);
   }
 
   function _defaultMessageProcessor(message: MessageSchema): object {
@@ -32,15 +33,27 @@ function messageService(): MessageService {
     return {};
   }
 
-  function _chatMessageProcessor(
+  async function _chatMessageProcessor(
     message: MessageSchema,
     messageData: object
-  ): ChatMessageData {
+  ): Promise<ChatMessageData> {
     const { messageText } = message as ChatMessageSchema;
     const { userUUID } = messageData as { userUUID: string };
+
+    if (!userUUID) {
+      throw new Error('User UUID is required for chat messages');
+    }
+
+    const findUserQuery = await findUserByUUIDQuery(userUUID);
+    const userName = findUserQuery.rows[0]?.user_name;
+
+    if (!userName) {
+      throw new Error(`User with UUID ${userUUID} not found`);
+    }
+
     return {
       messageText,
-      sender: userUUID,
+      sender: userName,
     };
   }
 
