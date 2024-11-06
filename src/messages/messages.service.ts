@@ -27,10 +27,7 @@ function messageService(): MessageService {
     return processor(message, messageData);
   }
 
-  function _defaultMessageProcessor(
-    message: MessageSchema,
-    messageData: object
-  ): object {
+  function _defaultMessageProcessor(message: MessageSchema): object {
     console.warn('Message with unknown type: ', message);
     return {};
   }
