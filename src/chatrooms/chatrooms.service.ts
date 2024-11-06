@@ -3,6 +3,8 @@ import { EventBusEvent } from '../events/events.types';
 import kafkaEvents from '../events/kafka';
 import createKafkaAdmin from '../events/kafka/kafka.admin';
 import createKafkaLedger from '../events/kafka/kafka.ledger';
+import { MessageSchema } from '../messages/messages.schema';
+import messagesService from '../messages/messages.service';
 import {
   createChatroomQuery,
   createChatroomUserLinkQuery,
@@ -53,11 +55,20 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
   async function receiveChatroomMessage(
     chatroomUUID: string,
     userUUID: string,
-    message: object
+    message: MessageSchema
   ): Promise<void> {
+    const messageMetadata = {
+      chatroomUUID,
+      userUUID,
+    };
+    const eventValue = await messagesService.processIncomingMessage(
+      message,
+      messageMetadata
+    );
+
     const eventBusMessage: EventBusEvent = {
-      key: userUUID,
-      value: { message, sender: userUUID },
+      key: message.messageType,
+      value: eventValue,
     };
 
     ledger.submitEvent(chatroomUUID, eventBusMessage);

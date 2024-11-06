@@ -120,8 +120,12 @@ describe('WebSocket Middleware Handler', () => {
 
     const error = givenRandomError();
     const middleware1 = jest.fn((socket, context, next) => next({ error }));
+    const middleware2 = jest.fn((socket, context, next) => next({ error }));
 
-    const middlewareHandler = websocketMiddlewareHandler(middleware1);
+    const middlewareHandler = websocketMiddlewareHandler(
+      middleware1,
+      middleware2
+    );
 
     const socket = {} as WebSocket;
     socket.close = jest.fn();
@@ -133,5 +137,7 @@ describe('WebSocket Middleware Handler', () => {
     // Validate
     expect(websocketErrorHandlerMock).toHaveBeenCalledTimes(1);
     expect(websocketErrorHandlerMock).toHaveBeenCalledWith(error, socket);
+
+    expect(middleware2).toHaveBeenCalledTimes(0);
   });
 });
