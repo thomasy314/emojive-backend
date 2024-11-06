@@ -1,4 +1,5 @@
 import { JSONSchemaType } from 'ajv';
+import { MessageSchema } from '../../messages/messages.schema';
 import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
 import createWebSocketValidator, {
@@ -7,9 +8,9 @@ import createWebSocketValidator, {
 } from '../../websocket/websocket.validator';
 
 type ReceiveChatroomMessageSchema = {
-  chatroomUUID: string;
   userUUID: string;
-  message: object;
+  chatroomUUID: string;
+  message: MessageSchema;
 };
 
 const receiveChatroomMessageSchema: JSONSchemaType<ReceiveChatroomMessageSchema> =
@@ -36,10 +37,45 @@ const receiveChatroomMessageSchema: JSONSchemaType<ReceiveChatroomMessageSchema>
       },
       message: {
         type: 'object',
-        nullable: false,
+        oneOf: [
+          {
+            properties: {
+              messageType: {
+                type: 'string',
+                enum: ['join', 'leave'],
+                errorMessage: {
+                  type: `${VALIDATION_ERRORS.TYPE} String`,
+                  enum: `${VALIDATION_ERRORS.ENUM} 'chat' | 'join' | 'leave'`,
+                },
+              },
+            },
+          },
+          {
+            properties: {
+              messageType: {
+                type: 'string',
+                enum: ['chat'],
+                errorMessage: {
+                  type: `${VALIDATION_ERRORS.TYPE} String`,
+                  enum: `${VALIDATION_ERRORS.ENUM} 'chat'`,
+                },
+              },
+              messageText: {
+                type: 'string',
+                nullable: false,
+                errorMessage: {
+                  type: `${VALIDATION_ERRORS.TYPE} String`,
+                },
+              },
+            },
+            required: ['messageText'],
+          },
+        ],
+        required: ['messageType'],
         errorMessage: {
           type: `${VALIDATION_ERRORS.TYPE} Object`,
         },
+        additionalProperties: true,
       },
     },
     required: ['chatroomUUID', 'userUUID', 'message'],

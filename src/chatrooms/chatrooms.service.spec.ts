@@ -2,6 +2,7 @@ import { Kafka } from 'kafkajs';
 import { QueryResult } from 'pg';
 import { EventAdmin, EventLedger } from '../events/events.types';
 import createKafkaAdmin from '../events/kafka/kafka.admin';
+import { ChatMessageSchema } from '../messages/messages.schema';
 import {
   givenDBChatroom,
   givenRandomBoolean,
@@ -256,12 +257,12 @@ describe('Chatroom Service', () => {
   describe('Receive Chatroom Message', () => {
     let chatroomUUID: string;
     let userUUID: string;
-    let message: object;
+    let message: ChatMessageSchema;
 
     beforeEach(() => {
       chatroomUUID = givenValidUUID();
       userUUID = givenValidUUID();
-      message = { text: 'Hello, world!' };
+      message = { messageType: 'chat', messageText: 'hello' };
     });
 
     test('Given valid chatroom and user UUIDs and message THEN event is submitted to ledger', async () => {
@@ -278,8 +279,8 @@ describe('Chatroom Service', () => {
       // Validate
       expect(eventLedger.submitEvent).toHaveBeenCalledTimes(1);
       expect(eventLedger.submitEvent).toHaveBeenCalledWith(chatroomUUID, {
-        key: userUUID,
-        value: { message, sender: userUUID },
+        key: 'chat',
+        value: { messageText: 'hello', sender: userUUID },
       });
     });
   });

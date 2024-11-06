@@ -50,6 +50,7 @@ function websocketMiddlewareHandler(...middlewares: WebSocketRouterFunction[]) {
             ({ error, newContext }: NextProps = {}) => {
               if (error) {
                 websocketErrorHandler(error, socket);
+                return;
               }
               context = newContext ?? context;
               runner(index + 1);

@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import { MessageSchema } from '../messages/messages.schema';
 import { WebSocketRouterFunction } from '../websocket/websocket-middleware-handler';
 import chatroomService from './chatrooms.service';
 import { JoinChatroomSchema } from './validation/join-chatroom.schema';
@@ -44,7 +45,7 @@ function chatroomController() {
     const { chatroomUUID, userUUID, message } = context as {
       chatroomUUID: string;
       userUUID: string;
-      message: object;
+      message: MessageSchema;
     };
 
     return chatroomService

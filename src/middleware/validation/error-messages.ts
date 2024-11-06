@@ -5,6 +5,7 @@ const VALIDATION_ERRORS = {
   MIN: 'must be more than',
   EXACT_LENGTH: `must contain exactly`,
   TYPE: 'must be of type',
+  ENUM: 'must be one of',
   PATTERN: 'must match pattern',
   FORMAT: 'must be of format',
 };
