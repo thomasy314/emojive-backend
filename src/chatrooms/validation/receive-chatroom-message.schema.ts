@@ -62,9 +62,11 @@ const receiveChatroomMessageSchema: JSONSchemaType<ReceiveChatroomMessageSchema>
               },
               messageText: {
                 type: 'string',
+                format: 'emoji',
                 nullable: false,
                 errorMessage: {
                   type: `${VALIDATION_ERRORS.TYPE} String`,
+                  format: `${VALIDATION_ERRORS.FORMAT} Emoji`,
                 },
               },
             },

@@ -1,3 +1,4 @@
+import { givenRandomString, givenValidUUID } from '../utils/test-helpers';
 import { ChatMessageSchema, MessageSchema } from './messages.schema';
 import messageService, { MessageService } from './messages.service';
 
@@ -8,22 +9,26 @@ describe('MessageService', () => {
     service = messageService;
   });
 
-  it('should process chat message correctly', async () => {
+  test('GIVEN a chat message WHEN processed THEN it should process chat message correctly', async () => {
+    // Setup
+    const messageText = givenRandomString();
     const message: ChatMessageSchema = {
       messageType: 'chat',
-      messageText: 'Hello, world!',
+      messageText,
     };
-    const messageData = { userUUID: '12345' };
+
+    const userUUID = givenValidUUID();
+    const messageData = { userUUID: userUUID };
 
     const result = await service.processIncomingMessage(message, messageData);
 
     expect(result).toEqual({
-      messageText: 'Hello, world!',
-      sender: '12345',
+      messageText: messageText,
+      sender: userUUID,
     });
   });
 
-  it('should log a warning and process unknown message type with default processor', async () => {
+  test('GIVEN an unknown message type WHEN processed THEN it should log a warning and process with default processor', async () => {
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
     const message: MessageSchema = {
