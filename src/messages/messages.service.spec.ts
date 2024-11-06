@@ -1,6 +1,10 @@
-import { givenRandomString, givenValidUUID } from '../utils/test-helpers';
+import { QueryResult } from 'pg';
+import { findUserByUUIDQuery } from '../users/db/users.queries';
+import { givenDBUser, givenRandomString } from '../utils/test-helpers';
 import { ChatMessageSchema, MessageSchema } from './messages.schema';
 import messageService, { MessageService } from './messages.service';
+
+jest.mock('../users/db/users.queries');
 
 describe('MessageService', () => {
   let service: MessageService;
@@ -17,14 +21,18 @@ describe('MessageService', () => {
       messageText,
     };
 
-    const userUUID = givenValidUUID();
-    const messageData = { userUUID: userUUID };
+    const userData = givenDBUser();
+    const queryResult = { rows: [userData] } as QueryResult;
+    const findUserByUUIDQueryMock = jest.mocked(findUserByUUIDQuery);
+    findUserByUUIDQueryMock.mockResolvedValue(queryResult);
+
+    const messageData = { userUUID: userData.user_uuid };
 
     const result = await service.processIncomingMessage(message, messageData);
 
     expect(result).toEqual({
       messageText: messageText,
-      sender: userUUID,
+      sender: userData.user_name,
     });
   });
 
@@ -44,5 +52,38 @@ describe('MessageService', () => {
       message
     );
     expect(result).toEqual({});
+  });
+
+  test('GIVEN a chat message without userUUID WHEN processed THEN it should throw an error', async () => {
+    const messageText = givenRandomString();
+    const message: ChatMessageSchema = {
+      messageType: 'chat',
+      messageText,
+    };
+
+    const messageData = {};
+
+    await expect(
+      service.processIncomingMessage(message, messageData)
+    ).rejects.toThrow('User UUID is required for chat messages');
+  });
+
+  test('GIVEN a chat message with non-existent userUUID WHEN processed THEN it should throw an error', async () => {
+    const messageText = givenRandomString();
+    const message: ChatMessageSchema = {
+      messageType: 'chat',
+      messageText,
+    };
+
+    const userUUID = givenRandomString();
+    const queryResult = { rows: [] } as unknown as QueryResult;
+    const findUserByUUIDQueryMock = jest.mocked(findUserByUUIDQuery);
+    findUserByUUIDQueryMock.mockResolvedValue(queryResult);
+
+    const messageData = { userUUID };
+
+    await expect(
+      service.processIncomingMessage(message, messageData)
+    ).rejects.toThrow(`User with UUID ${userUUID} not found`);
   });
 });

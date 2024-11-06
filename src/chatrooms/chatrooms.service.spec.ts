@@ -2,7 +2,11 @@ import { Kafka } from 'kafkajs';
 import { QueryResult } from 'pg';
 import { EventAdmin, EventLedger } from '../events/events.types';
 import createKafkaAdmin from '../events/kafka/kafka.admin';
-import { ChatMessageSchema } from '../messages/messages.schema';
+import {
+  ChatMessageData,
+  ChatMessageSchema,
+} from '../messages/messages.schema';
+import messagesService from '../messages/messages.service';
 import {
   givenDBChatroom,
   givenRandomBoolean,
@@ -20,6 +24,7 @@ import {
 jest.mock('./db/chatrooms.queries');
 jest.mock('../events/kafka/kafka.admin');
 jest.mock('../events/kafka/kafka.ledger');
+jest.mock('../messages/messages.service');
 
 jest.mock('kafkajs', () => {
   return {
@@ -259,10 +264,21 @@ describe('Chatroom Service', () => {
     let userUUID: string;
     let message: ChatMessageSchema;
 
+    let processedMessage: ChatMessageData;
+    const processIncomingMessageMock = jest.mocked(
+      messagesService.processIncomingMessage
+    );
+
     beforeEach(() => {
       chatroomUUID = givenValidUUID();
       userUUID = givenValidUUID();
       message = { messageType: 'chat', messageText: 'hello' };
+
+      processedMessage = {
+        messageText: givenRandomEmoji(),
+        sender: givenRandomEmoji(),
+      };
+      processIncomingMessageMock.mockResolvedValueOnce(processedMessage);
     });
 
     test('Given valid chatroom and user UUIDs and message THEN event is submitted to ledger', async () => {
@@ -280,7 +296,7 @@ describe('Chatroom Service', () => {
       expect(eventLedger.submitEvent).toHaveBeenCalledTimes(1);
       expect(eventLedger.submitEvent).toHaveBeenCalledWith(chatroomUUID, {
         key: 'chat',
-        value: { messageText: 'hello', sender: userUUID },
+        value: processedMessage,
       });
     });
   });
