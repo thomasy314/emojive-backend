@@ -262,7 +262,6 @@ The following is a high level list of items that need implementing, for more det
          1. `getChatroomMessages` - possibly don't need depending on how Kafka config is done
       1. emojis
          1. `getEmojis` - Gets a list of emojis available to users
-   1. Country and Region Code validation [ISO 3166](https://www.iso.org/iso-3166-country-codes.html)
 1. WebSocket messages
    1. Schema
    1. MongoDB - saving messages from kafka [[link](https://www.mongodb.com/docs/kafka-connector/current/)]

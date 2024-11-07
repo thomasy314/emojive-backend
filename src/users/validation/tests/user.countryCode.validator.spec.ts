@@ -47,7 +47,7 @@ describe('Country Code Validation', () => {
     });
   });
 
-  test('GIVEN countryCode too short THEN userValidator returns countryCode too short error', async () => {
+  test('GIVEN countryCode is not iso-3166 THEN userValidator returns countryCode too short error', async () => {
     // Setup
     const request: Request = {
       body: {
@@ -69,40 +69,9 @@ describe('Country Code Validation', () => {
       json: {
         validationErrors: [
           {
+            message: 'must be of format ISO 3166-1 or ISO 3166-2',
             param: '/countryCode',
-            message: 'must contain exactly 2 characters',
             value: 'E',
-          },
-        ],
-      },
-    });
-  });
-
-  test('GIVEN countryCode too long THEN userValidator returns countryCode too long error', async () => {
-    // Setup
-    const request: Request = {
-      body: {
-        userName: validUserName,
-        languages: validLanguages,
-        countryCode: 'ENU',
-        countryRegion: validCountryRegion,
-      },
-    } as Request;
-
-    // Execute
-    await userValidator(request, response, next);
-
-    // Validate
-    expect(next).toHaveBeenCalledTimes(1);
-    expect(next).toHaveBeenCalledWith({
-      status: 400,
-      error: new Error('Input Validation Error'),
-      json: {
-        validationErrors: [
-          {
-            param: '/countryCode',
-            message: 'must contain exactly 2 characters',
-            value: 'ENU',
           },
         ],
       },
