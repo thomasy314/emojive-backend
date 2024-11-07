@@ -34,6 +34,16 @@ describe('WebSocket Router', () => {
   });
 
   describe('Registering Events', () => {
+    test('GIVEN websocket path WHEN registering THEN should call router on method', () => {
+      const path = givenRandomString();
+      const handler = jest.fn();
+
+      const wssServer = createWebSocketServer(httpServer, websocketServer);
+      wssServer.on(path, handler);
+
+      expect(routerMock.on).toHaveBeenCalledWith(path, undefined, handler);
+    });
+
     test('GIVEN websocket event WHEN registering THEN should call router on method', () => {
       const path = givenRandomString();
       const event = givenRandomString();

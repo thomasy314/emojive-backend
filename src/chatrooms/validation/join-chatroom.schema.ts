@@ -3,6 +3,7 @@ import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
 import createWebSocketValidator, {
   getConnectionParamContextData,
+  getConnectionUserUUIDContextData,
 } from '../../websocket/websocket.validator';
 
 type JoinChatroomSchema = {
@@ -40,6 +41,7 @@ const validateCreateChatroom = ajv.compile(joinChatroomSchema);
 
 const joinCharoomValidator = createWebSocketValidator(
   validateCreateChatroom,
+  getConnectionUserUUIDContextData,
   getConnectionParamContextData
 );
 

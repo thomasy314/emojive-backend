@@ -5,13 +5,13 @@ import websocketMiddlewareHandler, {
 
 type WebSocketRouterNode = {
   children: Map<string, WebSocketRouterNode>;
-  handler?: WebSocketRouterHandler;
+  middleware: WebSocketRouterFunction[];
 };
 
 interface WebSocketRouter {
   on: (
     path: string,
-    event: string,
+    event?: string,
     ...handlers: WebSocketRouterFunction[]
   ) => void;
   onWebSocketMessage: (
@@ -34,6 +34,7 @@ interface WebSocketRouter {
 function websocketRouter(): WebSocketRouter {
   const routerRoot: WebSocketRouterNode = {
     children: new Map(),
+    middleware: [],
   };
 
   function _getRootNode() {
@@ -45,35 +46,27 @@ function websocketRouter(): WebSocketRouter {
 
     let curNode: WebSocketRouterNode | undefined = routerRoot;
 
+    const middleware = [];
+
     for (const part of pathParts) {
       curNode = curNode?.children.get(part);
+      middleware.push(...(curNode?.middleware ?? []));
       if (curNode === undefined || curNode == null) {
         break;
       }
     }
 
-    if (
-      curNode === undefined ||
-      curNode === null ||
-      curNode.handler == undefined ||
-      curNode.handler == null
-    ) {
-      return websocketMiddlewareHandler();
-    }
-
-    return curNode.handler;
+    return websocketMiddlewareHandler(...middleware);
   }
 
   function on(
     path: string,
-    event: string,
+    event?: string,
     ...handlers: WebSocketRouterFunction[]
   ) {
     const leafNode = _buildLeafNode(routerRoot, path, event);
 
-    const handler = leafNode.handler ?? websocketMiddlewareHandler();
-    handler.push(...handlers);
-    leafNode.handler = handler;
+    leafNode.middleware.push(...handlers);
   }
 
   function onWebSocketMessage(
@@ -127,12 +120,11 @@ function websocketRouter(): WebSocketRouter {
   }
 
   function _newRouterNode(
-    children: Map<string, WebSocketRouterNode> = new Map(),
-    handler?: WebSocketRouterHandler
+    children: Map<string, WebSocketRouterNode> = new Map()
   ): WebSocketRouterNode {
     return {
       children,
-      handler,
+      middleware: [],
     };
   }
 

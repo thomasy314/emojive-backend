@@ -1,35 +1,33 @@
 import { NextFunction, Request, Response } from 'express';
 import authService from '../../auth/auth.service';
+import catchError from '../../utils/catch-error';
 import { ResponseError } from '../errorHandling/error.types';
-import {
-  AuthorizationSchema,
-  validateAuthorization,
-} from './authorization.schema';
 
 function authorization(
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  if (authService().confirmRouteAuthNeeded(req.path) === false) {
+  if (authService.confirmRouteAuthNeeded(req.path) === false) {
     next();
     return Promise.resolve();
   }
 
-  const isValid = validateAuthorization(req.query);
-  if (!isValid) {
-    const err: ResponseError = {
+  const [error, authToken] = catchError(() =>
+    authService.getAuthToken(req.headers)
+  );
+
+  if (error || authToken === undefined) {
+    const responseErr: ResponseError = {
       status: 401,
-      error: new Error('Not Authorized'),
+      error: error as Error,
     };
-    next(err);
+    next(responseErr);
     return Promise.resolve();
   }
 
-  const requestData: AuthorizationSchema = req.query as AuthorizationSchema;
-
-  return authService()
-    .authorizeRequest(requestData.userUUID)
+  return authService
+    .authorizeRequest(authToken)
     .then(result => {
       if (result === false) {
         const err: ResponseError = {

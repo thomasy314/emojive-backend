@@ -1,11 +1,12 @@
 import { IncomingMessage } from 'http';
 import { WebSocket } from 'ws';
 import ajv from '../middleware/validation/ajv';
-import { givenRandomString } from '../utils/test-helpers';
+import { givenRandomString, givenValidUUID } from '../utils/test-helpers';
 import createWebSocketValidator, {
   getConnectionCloseContextData,
   getConnectionMessageContextData,
   getConnectionParamContextData,
+  getConnectionUserUUIDContextData,
 } from './websocket.validator';
 
 describe('WebSocket Validator', () => {
@@ -112,7 +113,6 @@ describe('WebSocket Validator', () => {
 
     test('GIVEN connection context THEN getConnectionCloseContextData returns params as objects', () => {
       // Setup
-
       const code = 1000;
       const reasonString = givenRandomString();
       const reason = Buffer.from(reasonString);
@@ -125,6 +125,20 @@ describe('WebSocket Validator', () => {
       expect(data).toStrictEqual({
         closeCode: code,
         closeReason: reasonString,
+      });
+    });
+
+    test('GIVEN connection context THEN getConnectionUserUUIDContextData returns userUUID in objects', () => {
+      // Setup
+      const userUUID = givenValidUUID();
+      const context = { userUUID };
+
+      // Execute
+      const data = getConnectionUserUUIDContextData(context);
+
+      // Validate
+      expect(data).toStrictEqual({
+        userUUID,
       });
     });
   });
