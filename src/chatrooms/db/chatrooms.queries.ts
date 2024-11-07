@@ -22,13 +22,18 @@ async function createChatroomUserLinkQuery(
   const values = [chatroomUUID, userUUID];
 
   try {
-    await query(queryText, values);
-  } catch (error) {
-    // @ts-expect-error - error is a pg error
-    if (error.code !== '23505') {
-      throw error;
+    const result = await query(queryText, values);
+    if (result.rowCount === 0) {
+      throw Error(
+        `Chatroom or user not found for UUIDs: chatroom::${chatroomUUID}, user::${userUUID}`
+      );
     }
-    console.error(error);
+  } catch (error) {
+    if ((error as { code: string }).code === '23505') {
+      console.error(error);
+      return;
+    }
+    throw error;
   }
 }
 

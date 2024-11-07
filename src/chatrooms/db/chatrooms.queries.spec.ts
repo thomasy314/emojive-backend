@@ -1,3 +1,4 @@
+import { QueryResult } from 'pg';
 import { query } from '../../db';
 import {
   givenRandomBoolean,
@@ -33,7 +34,7 @@ describe('Chatroom Queries', () => {
   });
 
   describe('Create Chatroom Query', () => {
-    test('Given valid input THEN query is called with proper input', async () => {
+    test('GIVEN valid input THEN query is called with proper input', async () => {
       // Setup
       const queryMock = jest.mocked(query);
 
@@ -50,9 +51,10 @@ describe('Chatroom Queries', () => {
   });
 
   describe('Create Chatroom User Link Query', () => {
-    test('Given valid input THEN query is called with proper input', async () => {
+    test('GIVEN valid input THEN query is called with proper input', async () => {
       // Setup
       const queryMock = jest.mocked(query);
+      queryMock.mockResolvedValueOnce({ rowCount: 1 } as QueryResult);
 
       // Execute
       await createChatroomUserLinkQuery(chatroomUUID, userUUID);
@@ -65,7 +67,27 @@ describe('Chatroom Queries', () => {
       );
     });
 
-    test('Given duplicate entry THEN error is logged and not thrown', async () => {
+    test('GIVEN no user or chatroom with UUID found THEN error is thrown', async () => {
+      // Setup
+      const queryMock = jest.mocked(query);
+      queryMock.mockResolvedValueOnce({ rowCount: 0 } as QueryResult);
+
+      // Execute
+      await expect(
+        createChatroomUserLinkQuery(chatroomUUID, userUUID)
+      ).rejects.toThrow(
+        `Chatroom or user not found for UUIDs: chatroom::${chatroomUUID}, user::${userUUID}`
+      );
+
+      // Validate
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith(
+        'INSERT INTO chatrooms_users (chatroom_id, user_id) SELECT c.chatroom_id, u.user_id FROM (SELECT chatroom_id FROM chatrooms WHERE chatroom_uuid = $1) AS c CROSS JOIN (SELECT user_id FROM users WHERE user_uuid = $2) AS u',
+        [chatroomUUID, userUUID]
+      );
+    });
+
+    test('GIVEN duplicate entry THEN error is logged and not thrown', async () => {
       // Setup
       const queryMock = jest.mocked(query);
       const error = new Error();
@@ -82,7 +104,7 @@ describe('Chatroom Queries', () => {
       expect(console.error).toHaveBeenCalledWith(error);
     });
 
-    test('Given other error THEN error is thrown', async () => {
+    test('GIVEN other error THEN error is thrown', async () => {
       // Setup
       const queryMock = jest.mocked(query);
       const error = new Error('Some other error');
@@ -96,7 +118,7 @@ describe('Chatroom Queries', () => {
   });
 
   describe('Delete Chatroom User Link Query', () => {
-    test('Given valid input THEN query is called with proper input', async () => {
+    test('GIVEN valid input THEN query is called with proper input', async () => {
       // Setup
       const queryMock = jest.mocked(query);
 
@@ -111,7 +133,7 @@ describe('Chatroom Queries', () => {
       );
     });
 
-    test('Given query throws an error THEN error is thrown', async () => {
+    test('GIVEN query throws an error THEN error is thrown', async () => {
       // Setup
       const queryMock = jest.mocked(query);
       const error = new Error('Some error');
