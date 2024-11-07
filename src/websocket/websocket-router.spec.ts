@@ -91,14 +91,11 @@ describe('WebSocket Router', () => {
                         'connection',
                         {
                           children: new Map(),
-                          handler: {
-                            handle: expect.any(Function),
-                            push: expect.any(Function),
-                          },
+                          middleware: [handlerFunction1],
                         },
                       ],
                     ]),
-                    handler: undefined,
+                    middleware: [],
                   },
                 ],
                 [
@@ -113,25 +110,23 @@ describe('WebSocket Router', () => {
                               'message',
                               {
                                 children: new Map(),
-                                handler: {
-                                  handle: expect.any(Function),
-                                  push: expect.any(Function),
-                                },
+                                middleware: [handlerFunction2],
                               },
                             ],
                           ]),
-                          handler: undefined,
+                          middleware: [],
                         },
                       ],
                     ]),
-                    handler: undefined,
+                    middleware: [],
                   },
                 ],
               ]),
-              handler: undefined,
+              middleware: [],
             },
           ],
         ]),
+        middleware: [],
       };
       expect(router._getRootNode()).toStrictEqual(expetedRouter);
     });

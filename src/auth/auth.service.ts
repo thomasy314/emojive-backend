@@ -1,17 +1,18 @@
+import { IncomingHttpHeaders } from 'http';
 import { ResponseError } from '../middleware/errorHandling/error.types';
 import { findUserByUUIDQuery } from '../users/db/users.queries';
 import routeAllowList from './authorization.allowlist';
 
 function authService() {
-  function confirmRouteAuthNeeded(pathName: string): boolean {
-    return !routeAllowList.includes(pathName);
+  function confirmRouteAuthNeeded(pathName: string | undefined): boolean {
+    return pathName !== undefined && !routeAllowList.includes(pathName);
   }
 
   function authorizeRequest(userUUID: string): Promise<boolean> {
     return new Promise((resolve, reject: (error: ResponseError) => void) => {
       return findUserByUUIDQuery(userUUID)
         .then(result => {
-          if (result.rows.length === 0) {
+          if (result.rowCount == 0) {
             reject({ status: 401, error: Error('Not Authorized') });
             return;
           }
@@ -32,10 +33,31 @@ function authService() {
     });
   }
 
+  function getAuthToken(headers: IncomingHttpHeaders): string {
+    const authHeader = headers?.authorization;
+
+    if (!authHeader) {
+      throw new Error('Not Authorized');
+    }
+
+    const [authType, authToken] = authHeader.split(' ');
+
+    if (authType !== 'Token') {
+      throw new Error('Incorrect Authorization Type');
+    }
+
+    if (authToken === '' || authToken === undefined) {
+      throw new Error('Invalid Token');
+    }
+
+    return authToken;
+  }
+
   return {
     authorizeRequest,
     confirmRouteAuthNeeded,
+    getAuthToken,
   };
 }
 
-export default authService;
+export default authService();

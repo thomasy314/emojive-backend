@@ -4,6 +4,7 @@ import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
 import createWebSocketValidator, {
   getConnectionCloseContextData,
   getConnectionParamContextData,
+  getConnectionUserUUIDContextData,
 } from '../../websocket/websocket.validator';
 
 type LeaveChatroomSchema = {
@@ -58,6 +59,7 @@ const validateCreateChatroom = ajv.compile(leaveChatroomSchema);
 
 const leaveChatroomValidator = createWebSocketValidator(
   validateCreateChatroom,
+  getConnectionUserUUIDContextData,
   getConnectionParamContextData,
   getConnectionCloseContextData
 );

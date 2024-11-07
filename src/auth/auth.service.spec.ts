@@ -1,7 +1,8 @@
+import { IncomingHttpHeaders } from 'http';
 import { QueryResult } from 'pg';
 import { findUserByUUIDQuery } from '../users/db/users.queries';
 import { givenDBUser } from '../utils/test-helpers';
-import authService from './auth.service';
+import authservice from './auth.service';
 
 jest.mock('../users/db/users.queries');
 
@@ -12,7 +13,7 @@ describe('Auth Service', () => {
       const routePath = '/path/needs/auth';
 
       // Execute
-      const authNeeded = authService().confirmRouteAuthNeeded(routePath);
+      const authNeeded = authservice.confirmRouteAuthNeeded(routePath);
 
       // Validate
       expect(authNeeded).toBe(true);
@@ -23,7 +24,7 @@ describe('Auth Service', () => {
       const routePath = '/user/create';
 
       // Execute
-      const authNeeded = authService().confirmRouteAuthNeeded(routePath);
+      const authNeeded = authservice.confirmRouteAuthNeeded(routePath);
 
       // Validate
       expect(authNeeded).toBe(false);
@@ -48,7 +49,7 @@ describe('Auth Service', () => {
       findUserByUUIDMock.mockResolvedValueOnce(queryResult);
 
       // Execute
-      const requestAuthorized = authService().authorizeRequest(user.user_uuid);
+      const requestAuthorized = authservice.authorizeRequest(user.user_uuid);
 
       // Validate
       requestAuthorized.then(result => expect(result).toBe(true));
@@ -62,13 +63,13 @@ describe('Auth Service', () => {
       const user = givenDBUser();
 
       const queryResult = {
-        rows: [],
+        rowCount: 0,
       } as unknown as QueryResult;
 
       findUserByUUIDMock.mockResolvedValueOnce(queryResult);
 
       // Execute
-      const requestAuthorized = authService().authorizeRequest(user.user_uuid);
+      const requestAuthorized = authservice.authorizeRequest(user.user_uuid);
 
       // Validate
       requestAuthorized.catch(result =>
@@ -93,7 +94,7 @@ describe('Auth Service', () => {
       findUserByUUIDMock.mockResolvedValueOnce(queryResult);
 
       // Execute
-      const requestAuthorized = authService().authorizeRequest(user.user_uuid);
+      const requestAuthorized = authservice.authorizeRequest(user.user_uuid);
 
       // Validate
       requestAuthorized.catch(result =>
@@ -116,7 +117,7 @@ describe('Auth Service', () => {
       findUserByUUIDMock.mockRejectedValueOnce(dbError);
 
       // Execute
-      const requestAuthorized = authService().authorizeRequest(user.user_uuid);
+      const requestAuthorized = authservice.authorizeRequest(user.user_uuid);
 
       // Validate
       requestAuthorized.catch(result =>
@@ -128,6 +129,55 @@ describe('Auth Service', () => {
 
       expect(findUserByUUIDMock).toHaveBeenCalledTimes(1);
       expect(findUserByUUIDMock).toHaveBeenCalledWith(user.user_uuid);
+    });
+  });
+
+  describe('getAuthToken', () => {
+    test('GIVEN valid authorization header THEN return token', () => {
+      // Setup
+      const headers = {
+        authorization: 'Token validAuthToken',
+      };
+
+      // Execute
+      const authToken = authservice.getAuthToken(headers);
+
+      // Validate
+      expect(authToken).toBe('validAuthToken');
+    });
+
+    test('GIVEN missing authorization header THEN throw error', () => {
+      // Setup
+      const headers = {};
+
+      // Execute & Validate
+      expect(() =>
+        authservice.getAuthToken(headers as IncomingHttpHeaders)
+      ).toThrow('Not Authorized');
+    });
+
+    test('GIVEN incorrect authorization type THEN throw error', () => {
+      // Setup
+      const headers = {
+        authorization: 'Bearer invalidAuthToken',
+      };
+
+      // Execute & Validate
+      expect(() =>
+        authservice.getAuthToken(headers as IncomingHttpHeaders)
+      ).toThrow('Incorrect Authorization Type');
+    });
+
+    test('GIVEN malformed authorization header THEN throw error', () => {
+      // Setup
+      const headers = {
+        authorization: 'Token',
+      };
+
+      // Execute & Validate
+      expect(() =>
+        authservice.getAuthToken(headers as IncomingHttpHeaders)
+      ).toThrow('Invalid Token');
     });
   });
 });

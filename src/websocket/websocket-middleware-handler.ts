@@ -1,11 +1,16 @@
 import { WebSocket } from 'ws';
-import { ResponseError } from '../middleware/errorHandling/error.types';
+import {
+  instanceOfResponseError,
+  ResponseError,
+} from '../middleware/errorHandling/error.types';
 import websocketErrorHandler from './websocket-error-handler';
+
+type WebSocketNextFunction = (nextProps?: NextProps) => void;
 
 type WebSocketRouterFunction = (
   socket: WebSocket,
   context: unknown,
-  next: (nextProps?: NextProps) => void
+  next: WebSocketNextFunction
 ) => void;
 
 interface WebSocketRouterHandler {
@@ -44,21 +49,27 @@ function websocketMiddlewareHandler(...middlewares: WebSocketRouterFunction[]) {
       // TODO: Allow for custom error handler
       if (middleware) {
         try {
-          middleware(socket, context, (input = {}) => {
-            if (input instanceof Error) {
-              websocketErrorHandler(input, socket);
-              return;
-            }
+          middleware(
+            socket,
+            context,
+            (input: Error | ResponseError | NextProps = {}) => {
+              if (input instanceof Error || instanceOfResponseError(input)) {
+                // @ts-expect-error - Check above will confirm input is an Error or ResponseError
+                websocketErrorHandler(input, socket);
+                return;
+              }
 
-            const { error, newContext } = input;
+              // @ts-expect-error - Check above will confirm input is a NextProps object
+              const { error, newContext } = input;
 
-            if (error) {
-              websocketErrorHandler(error, socket);
-              return;
+              if (error) {
+                websocketErrorHandler(error, socket);
+                return;
+              }
+              context = newContext ?? context;
+              runner(index + 1);
             }
-            context = newContext ?? context;
-            runner(index + 1);
-          });
+          );
         } catch (err) {
           if (err instanceof Error) {
             websocketErrorHandler(err, socket);
@@ -77,4 +88,8 @@ function websocketMiddlewareHandler(...middlewares: WebSocketRouterFunction[]) {
 }
 
 export default websocketMiddlewareHandler;
-export type { WebSocketRouterFunction, WebSocketRouterHandler };
+export type {
+  WebSocketNextFunction,
+  WebSocketRouterFunction,
+  WebSocketRouterHandler,
+};

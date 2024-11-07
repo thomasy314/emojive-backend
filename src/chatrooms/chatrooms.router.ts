@@ -7,7 +7,7 @@ import { leaveChatroomValidator } from './validation/leave-chatroom.schema';
 import { receiveChatroomMessageValidator } from './validation/receive-chatroom-message.schema';
 
 const chatroomRouter = Router();
-const chatromoWebSocketRouter = websocketRouter();
+const chatroomWebSocketRouter = websocketRouter();
 
 chatroomRouter.post(
   '/create',
@@ -15,22 +15,22 @@ chatroomRouter.post(
   chatroomController.createChatroom
 );
 
-chatromoWebSocketRouter.onWebSocketConnection(
+chatroomWebSocketRouter.onWebSocketConnection(
   '/',
   joinCharoomValidator,
   chatroomController.joinChatroom
 );
 
-chatromoWebSocketRouter.onWebSocketMessage(
+chatroomWebSocketRouter.onWebSocketMessage(
   '/',
   receiveChatroomMessageValidator,
   chatroomController.receiveChatroomMessage
 );
 
-chatromoWebSocketRouter.onWebSocketClose(
+chatroomWebSocketRouter.onWebSocketClose(
   '/',
   leaveChatroomValidator,
   chatroomController.leaveChatroom
 );
 
-export { chatromoWebSocketRouter, chatroomRouter };
+export { chatroomRouter, chatroomWebSocketRouter };

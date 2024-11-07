@@ -5,6 +5,7 @@ import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
 import createWebSocketValidator, {
   getConnectionMessageContextData,
   getConnectionParamContextData,
+  getConnectionUserUUIDContextData,
 } from '../../websocket/websocket.validator';
 
 type ReceiveChatroomMessageSchema = {
@@ -90,6 +91,7 @@ const validateReceiveChatroomMessage = ajv.compile(
 
 const receiveChatroomMessageValidator = createWebSocketValidator(
   validateReceiveChatroomMessage,
+  getConnectionUserUUIDContextData,
   getConnectionParamContextData,
   getConnectionMessageContextData
 );

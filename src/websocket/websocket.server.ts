@@ -42,7 +42,8 @@ function createWebSocketServer(
 
         const eventData = {
           message,
-          ...request,
+          headers: request.headers,
+          url: request.url,
         };
 
         onMessageHandlers.handle(socket, eventData);
@@ -84,6 +85,10 @@ function createWebSocketServer(
     router.on(path, event, ...handlers);
   }
 
+  function on(path: string, ...handlers: WebSocketRouterFunction[]) {
+    router.on(path, undefined, ...handlers);
+  }
+
   function useRouter(path: string, otherRouter: WebSocketRouter) {
     router.merge(path, otherRouter);
   }
@@ -92,6 +97,7 @@ function createWebSocketServer(
     onWebSocketEvent,
     onWebSocketMessage,
     onWebSocketConnection,
+    on,
     useRouter,
     httpServer,
   };

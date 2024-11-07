@@ -30,6 +30,11 @@ function getConnectionCloseContextData(context: unknown) {
   };
 }
 
+function getConnectionUserUUIDContextData(context: unknown) {
+  const { userUUID } = context as { userUUID: string };
+  return { userUUID };
+}
+
 function createWebSocketValidator(
   validateFunction: ValidateFunction,
   ...getContextDataFunctions: GetContextDataFunction[]
@@ -62,4 +67,5 @@ export {
   getConnectionCloseContextData,
   getConnectionMessageContextData,
   getConnectionParamContextData,
+  getConnectionUserUUIDContextData,
 };

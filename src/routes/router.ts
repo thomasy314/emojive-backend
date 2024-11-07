@@ -1,10 +1,11 @@
 import express, { Express } from 'express';
 import { createServer } from 'http';
 import {
-  chatromoWebSocketRouter,
   chatroomRouter,
+  chatroomWebSocketRouter,
 } from '../chatrooms/chatrooms.router';
-import authorization from '../middleware/auth/authorization';
+import authorization from '../middleware/auth/express.authorization';
+import websocketAuthorization from '../middleware/auth/websocket.authorization';
 import expressErrorHandler from '../middleware/errorHandling/express-error-handler';
 import userRouter from '../users/users.router';
 import createWebSocketServer from '../websocket/websocket.server';
@@ -13,7 +14,8 @@ const expressServer: Express = express();
 
 const websocketServer = createWebSocketServer(createServer(expressServer));
 
-websocketServer.useRouter('/chatroom', chatromoWebSocketRouter);
+websocketServer.on('/', websocketAuthorization);
+websocketServer.useRouter('/chatroom', chatroomWebSocketRouter);
 
 expressServer.use(express.urlencoded({ extended: true }));
 expressServer.use(express.json());
