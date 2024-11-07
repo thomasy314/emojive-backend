@@ -41,8 +41,7 @@ describe('Users Controller', () => {
         body: {
           userName: validUserName,
           languages: validLanguages,
-          countryCode: validCountryCode,
-          countryRegion: validCountryRegion,
+          countryCode: `${validCountryCode}-${validCountryRegion}`,
         },
       } as Request;
 
@@ -82,8 +81,7 @@ describe('Users Controller', () => {
       body: {
         userName: validUserName,
         languages: validLanguages,
-        countryCode: validCountryCode,
-        countryRegion: validCountryRegion,
+        countryCode: `${validCountryCode}-${validCountryRegion}`,
       },
     } as Request;
 
