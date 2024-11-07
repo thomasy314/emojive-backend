@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import authService from '../../auth/auth.service';
-import catchError from '../../utils/catch-error';
+import catchError from '../../errorHandling/catch-error';
 import { ResponseError } from '../errorHandling/error.types';
 
 function authorization(

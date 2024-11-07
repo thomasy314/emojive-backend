@@ -1,6 +1,6 @@
 import { IncomingMessage, Server } from 'http';
 import { WebSocket, WebSocketServer } from 'ws';
-import catchError from '../utils/catch-error';
+import catchError from '../errorHandling/catch-error';
 import { urlEndToURL } from '../utils/url-helpers';
 import { WebSocketRouterFunction } from './websocket-middleware-handler';
 import websocketRouter, { WebSocketRouter } from './websocket-router';
