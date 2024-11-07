@@ -9,14 +9,16 @@ function userController() {
     response,
     next
   ): Promise<void> => {
-    const { userName, languages, countryCode, countryRegion } = request.body;
+    const { userName, languages, countryCode: iso3166Code } = request.body;
+
+    const [countryCode, regionCode] = iso3166Code.split('-');
 
     const languageTags: LanguageTag[] = languages.map(
       languagesService().languageTagToLanguageTagObj
     );
 
     return userService()
-      .createUser(userName, languageTags, countryCode, countryRegion)
+      .createUser(userName, languageTags, countryCode, regionCode)
       .then(result => {
         response.send(result);
       })

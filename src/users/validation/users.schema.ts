@@ -47,13 +47,13 @@ const userSchema: JSONSchemaType<UserSchema> = {
     },
     countryCode: {
       type: 'string',
+      format: `iso-3166`,
       nullable: false,
-      minLength: 2,
-      maxLength: 2,
       errorMessage: {
         minLength: `${VALIDATION_ERRORS.EXACT_LENGTH} 2 characters`,
         maxLength: `${VALIDATION_ERRORS.EXACT_LENGTH} 2 characters`,
         type: `${VALIDATION_ERRORS.TYPE} String`,
+        format: `${VALIDATION_ERRORS.FORMAT} ISO 3166-1 or ISO 3166-2`,
       },
     },
     countryRegion: {
