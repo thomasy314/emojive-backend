@@ -115,29 +115,57 @@ describe('WebSocket Middleware Handler', () => {
     expect(socket.close).toHaveBeenCalledTimes(0);
   });
 
-  test('GIVEN error passed to next THEN error handler called', () => {
-    // Setup
+  describe('Error Handling', () => {
+    test('GIVEN error passed to next THEN error handler called', () => {
+      // Setup
 
-    const error = givenRandomError();
-    const middleware1 = jest.fn((socket, context, next) => next({ error }));
-    const middleware2 = jest.fn((socket, context, next) => next({ error }));
+      const error = givenRandomError();
+      const middleware1 = jest.fn((socket, context, next) => next({ error }));
+      const middleware2 = jest.fn();
 
-    const middlewareHandler = websocketMiddlewareHandler(
-      middleware1,
-      middleware2
-    );
+      const middlewareHandler = websocketMiddlewareHandler(
+        middleware1,
+        middleware2
+      );
 
-    const socket = {} as WebSocket;
-    socket.close = jest.fn();
-    const context: string[] = [];
+      const socket = {} as WebSocket;
+      socket.close = jest.fn();
+      const context: string[] = [];
 
-    // Execute
-    middlewareHandler.handle(socket, context);
+      // Execute
+      middlewareHandler.handle(socket, context);
 
-    // Validate
-    expect(websocketErrorHandlerMock).toHaveBeenCalledTimes(1);
-    expect(websocketErrorHandlerMock).toHaveBeenCalledWith(error, socket);
+      // Validate
+      expect(websocketErrorHandlerMock).toHaveBeenCalledTimes(1);
+      expect(websocketErrorHandlerMock).toHaveBeenCalledWith(error, socket);
 
-    expect(middleware2).toHaveBeenCalledTimes(0);
+      expect(middleware2).toHaveBeenCalledTimes(0);
+    });
+
+    test('GIVEN error passed to next THEN error handler called', () => {
+      // Setup
+
+      const error = givenRandomError();
+      const middleware1 = jest.fn((socket, context, next) => next(error));
+      const middleware2 = jest.fn();
+
+      const middlewareHandler = websocketMiddlewareHandler(
+        middleware1,
+        middleware2
+      );
+
+      const socket = {} as WebSocket;
+      socket.close = jest.fn();
+      const context: string[] = [];
+
+      // Execute
+      middlewareHandler.handle(socket, context);
+
+      // Validate
+      expect(websocketErrorHandlerMock).toHaveBeenCalledTimes(1);
+      expect(websocketErrorHandlerMock).toHaveBeenCalledWith(error, socket);
+
+      expect(middleware2).toHaveBeenCalledTimes(0);
+    });
   });
 });

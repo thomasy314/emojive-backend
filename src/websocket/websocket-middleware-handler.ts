@@ -44,18 +44,21 @@ function websocketMiddlewareHandler(...middlewares: WebSocketRouterFunction[]) {
       // TODO: Allow for custom error handler
       if (middleware) {
         try {
-          middleware(
-            socket,
-            context,
-            ({ error, newContext }: NextProps = {}) => {
-              if (error) {
-                websocketErrorHandler(error, socket);
-                return;
-              }
-              context = newContext ?? context;
-              runner(index + 1);
+          middleware(socket, context, (input = {}) => {
+            if (input instanceof Error) {
+              websocketErrorHandler(input, socket);
+              return;
             }
-          );
+
+            const { error, newContext } = input;
+
+            if (error) {
+              websocketErrorHandler(error, socket);
+              return;
+            }
+            context = newContext ?? context;
+            runner(index + 1);
+          });
         } catch (err) {
           if (err instanceof Error) {
             websocketErrorHandler(err, socket);
