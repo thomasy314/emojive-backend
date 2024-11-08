@@ -1,3 +1,4 @@
+import cors from 'cors';
 import express, { Express } from 'express';
 import { createServer } from 'http';
 import {
@@ -11,8 +12,9 @@ import userRouter from '../users/users.router';
 import createWebSocketServer from '../websocket/websocket.server';
 
 const expressServer: Express = express();
-
 const websocketServer = createWebSocketServer(createServer(expressServer));
+
+expressServer.use(cors());
 
 websocketServer.on('/', websocketAuthorization);
 websocketServer.useRouter('/chatroom', chatroomWebSocketRouter);
