@@ -40,7 +40,9 @@ function authService() {
       throw new Error('Not Authorized');
     }
 
-    const [authType, authToken] = authHeader.split(' ');
+    const [authType, authToken] = authHeader.split(/\s|%20/);
+
+    console.log(authType, authToken);
 
     if (authType !== 'Token') {
       throw new Error('Incorrect Authorization Type');

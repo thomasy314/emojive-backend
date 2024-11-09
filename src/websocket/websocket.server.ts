@@ -5,6 +5,7 @@ import { urlEndToURL } from '../utils/url-helpers';
 import { WebSocketRouterFunction } from './websocket-middleware-handler';
 import websocketRouter, { WebSocketRouter } from './websocket-router';
 import { WebSocketError } from './websocket.message-schema';
+import { subProtocolsToObject } from './websocket.utils';
 
 function createWebSocketServer(
   httpServer: Server,
@@ -22,6 +23,16 @@ function createWebSocketServer(
     'connection',
     (socket: WebSocket, request: IncomingMessage) => {
       const requestUrl = urlEndToURL(request.url);
+
+      const subProtocol =
+        request.headers['sec-websocket-protocol']?.split(', ') ?? [];
+
+      request.headers = {
+        ...request.headers,
+        ...subProtocolsToObject(subProtocol),
+      };
+
+      console.log(request.headers);
 
       const connectionHandler = router.get(requestUrl.pathname, 'connection');
       connectionHandler.handle(socket, request);

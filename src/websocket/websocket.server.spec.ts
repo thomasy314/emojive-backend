@@ -95,7 +95,7 @@ describe('WebSocket Router', () => {
 
     beforeEach(() => {
       url = `/${givenRandomString()}`;
-      incomingMessageMock = { url } as IncomingMessage;
+      incomingMessageMock = { url, headers: {} } as IncomingMessage;
 
       // @ts-expect-error - null input is not included in types
       socket = new WebSocket(null, undefined, {});
