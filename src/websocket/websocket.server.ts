@@ -32,8 +32,6 @@ function createWebSocketServer(
         ...subProtocolsToObject(subProtocol),
       };
 
-      console.log(request.headers);
-
       const connectionHandler = router.get(requestUrl.pathname, 'connection');
       connectionHandler.handle(socket, request);
 

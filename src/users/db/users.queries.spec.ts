@@ -1,4 +1,4 @@
-import { query } from '../../db';
+import { query } from '../../db/postgres';
 import {
   createUserQuery,
   findUserByIDQuery,
@@ -6,7 +6,7 @@ import {
   linkUserToLanguageQuery,
 } from './users.queries';
 
-jest.mock('../../db');
+jest.mock('../../db/postgres');
 
 const userName: string = '😊';
 const countryCode: string = 'US';

@@ -1,4 +1,4 @@
-import { transaction } from '../db';
+import { transaction } from '../db/postgres';
 import { createLanguageQuery } from '../languages/db/languages.queries';
 import { LanguageTag } from '../languages/languages.types';
 import {

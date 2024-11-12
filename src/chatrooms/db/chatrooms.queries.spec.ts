@@ -1,5 +1,5 @@
 import { QueryResult } from 'pg';
-import { query } from '../../db';
+import { query } from '../../db/postgres';
 import {
   givenRandomBoolean,
   givenRandomEmoji,
@@ -12,7 +12,7 @@ import {
   deleteChatroomUserLinkQuery,
 } from './chatrooms.queries';
 
-jest.mock('../../db');
+jest.mock('../../db/postgres');
 
 describe('Chatroom Queries', () => {
   let chatroomName: string;

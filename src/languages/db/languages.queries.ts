@@ -1,5 +1,5 @@
 import { QueryResult } from 'pg';
-import { query } from '../../db';
+import { query } from '../../db/postgres';
 import { LanguageTag } from '../languages.types';
 
 function createLanguageQuery(languages: LanguageTag[]): Promise<QueryResult> {

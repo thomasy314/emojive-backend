@@ -20,7 +20,14 @@ services:
     volumes:
       - kafka_data:/bitnami/kafka
 
+  mongo_db:
+    container_name: emojive-document-db
+    volumes:
+      - mongo_data:/data/db
+
 volumes:
+  mongo_data:
+    driver: local
   postgres_data:
     driver: local
   kafka_data:

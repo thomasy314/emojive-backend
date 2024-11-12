@@ -42,8 +42,6 @@ function authService() {
 
     const [authType, authToken] = authHeader.split(/\s|%20/);
 
-    console.log(authType, authToken);
-
     if (authType !== 'Token') {
       throw new Error('Incorrect Authorization Type');
     }

@@ -17,9 +17,32 @@ services:
         condition: service_healthy
       kafka_events:
         condition: service_healthy
+      mongo_db:
+        condition: service_healthy
     networks:
       - postgres_network
       - kafka_network
+      - mongo_network
+
+  mongo_db:
+    container_name: emojive-document-db
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGODB_DATABASE}
+    ports:
+      - $MONGODB_PORT:$MONGODB_PORT
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./src/db/mongodb/mongodb-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - mongo_network
 
   postgres_db:
     container_name: emojive-db
@@ -36,7 +59,7 @@ services:
       timeout: 5s
       retries: 10
     volumes:
-      - ./src/db/init:/docker-entrypoint-initdb.d
+      - ./src/db/postgres/postgres-init:/docker-entrypoint-initdb.d:ro
     networks:
       - postgres_network
 
@@ -64,6 +87,8 @@ services:
       - kafka_network
 
 networks:
+  mongo_network:
+    driver: bridge
   postgres_network:
     driver: bridge
   kafka_network:
