@@ -1,8 +1,8 @@
-import { query } from '../../db';
+import { query } from '../../db/postgres';
 import { givenLanguageTag } from '../../utils/test-helpers';
 import { createLanguageQuery } from './languages.queries';
 
-jest.mock('../../db');
+jest.mock('../../db/postgres');
 
 describe('languages queries', () => {
   describe('Create language query', () => {

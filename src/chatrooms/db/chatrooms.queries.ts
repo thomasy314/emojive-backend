@@ -1,5 +1,5 @@
 import { QueryResult } from 'pg';
-import { query } from '../../db';
+import { query } from '../../db/postgres';
 
 function createChatroomQuery(
   chatroomName: string,

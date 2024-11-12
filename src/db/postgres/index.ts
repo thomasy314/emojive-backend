@@ -1,5 +1,5 @@
 import { Pool, QueryResult } from 'pg';
-import { postgresConfig } from '../config/postgres.config';
+import { postgresConfig } from '../../config/postgres.config';
 
 const pool = new Pool(postgresConfig);
 

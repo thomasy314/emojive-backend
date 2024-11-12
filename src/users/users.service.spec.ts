@@ -1,5 +1,5 @@
 import { QueryResult } from 'pg';
-import { transaction } from '../db';
+import { transaction } from '../db/postgres';
 import { LanguageTag } from '../languages/languages.types';
 import { givenDBUser } from '../utils/test-helpers';
 import { findUserByIDQuery, linkUserToLanguageQuery } from './db/users.queries';
@@ -7,7 +7,7 @@ import userService from './users.service';
 
 jest.mock('./db/users.queries');
 
-jest.mock('../db');
+jest.mock('../db/postgres');
 
 const validUserName = '🦆';
 const validLanguages: LanguageTag[] = [
