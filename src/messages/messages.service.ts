@@ -32,9 +32,12 @@ function messageService(): MessageService {
     };
   }
 
-  function _defaultMessageProcessor(message: MessageSchema): object {
-    console.warn('Message with unknown type: ', message);
-    return {};
+  async function _defaultMessageProcessor(
+    message: MessageSchema,
+    messageData: object
+  ): Promise<object> {
+    const userName = await _getUserNameFromMessageData(messageData);
+    return { sender: userName };
   }
 
   async function _chatMessageProcessor(
@@ -42,6 +45,18 @@ function messageService(): MessageService {
     messageData: object
   ): Promise<ChatMessageData> {
     const { messageText } = message as ChatMessageSchema;
+
+    const userName = await _getUserNameFromMessageData(messageData);
+
+    return {
+      messageText,
+      sender: userName,
+    };
+  }
+
+  async function _getUserNameFromMessageData(
+    messageData: object
+  ): Promise<string> {
     const { userUUID } = messageData as { userUUID: string };
 
     if (!userUUID) {
@@ -55,10 +70,7 @@ function messageService(): MessageService {
       throw new Error(`User with UUID ${userUUID} not found`);
     }
 
-    return {
-      messageText,
-      sender: userName,
-    };
+    return userName;
   }
 
   return {
