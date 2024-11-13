@@ -2,6 +2,7 @@ type MessageEvent = {
   message: object;
   chatroomUUID: string;
   userUUID: string;
+  timestamp: string;
 };
 
 type MessageSchema = {

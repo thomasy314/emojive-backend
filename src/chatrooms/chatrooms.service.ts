@@ -72,6 +72,7 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
         message: processedMessage,
         chatroomUUID,
         userUUID,
+        timestamp: new Date().toISOString(),
       },
     };
 

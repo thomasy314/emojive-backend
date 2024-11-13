@@ -290,6 +290,9 @@ describe('Chatroom Service', () => {
       const uuid = givenValidUUID() as UUID;
       randomUUIDSpy.mockImplementation(() => uuid);
 
+      const mockDate = new Date('2020-01-01');
+      jest.useFakeTimers().setSystemTime(mockDate);
+
       // Execute
       await chatroomService.receiveChatroomMessage(
         chatroomUUID,
@@ -305,6 +308,7 @@ describe('Chatroom Service', () => {
           message: processedMessage,
           chatroomUUID,
           userUUID,
+          timestamp: mockDate.toISOString(),
         },
       });
     });

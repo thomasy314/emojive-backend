@@ -31,7 +31,13 @@ function chatroomController() {
 
     const onMessage = (event: EventBusEvent) => {
       const eventValue = event.value as MessageEvent;
-      socket.send(JSON.stringify(eventValue.message));
+
+      const outgoing = {
+        ...eventValue.message,
+        timeStamp: eventValue.timestamp,
+      };
+
+      socket.send(JSON.stringify(outgoing));
     };
 
     return chatroomService
