@@ -1,3 +1,4 @@
+import { UUID } from 'crypto';
 import { Kafka } from 'kafkajs';
 import { QueryResult } from 'pg';
 import { EventAdmin, EventLedger } from '../events/events.types';
@@ -285,6 +286,13 @@ describe('Chatroom Service', () => {
       // Setup
       eventLedger.submitEvent = jest.fn();
 
+      const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID');
+      const uuid = givenValidUUID() as UUID;
+      randomUUIDSpy.mockImplementation(() => uuid);
+
+      const mockDate = new Date('2020-01-01');
+      jest.useFakeTimers().setSystemTime(mockDate);
+
       // Execute
       await chatroomService.receiveChatroomMessage(
         chatroomUUID,
@@ -295,8 +303,13 @@ describe('Chatroom Service', () => {
       // Validate
       expect(eventLedger.submitEvent).toHaveBeenCalledTimes(1);
       expect(eventLedger.submitEvent).toHaveBeenCalledWith(chatroomUUID, {
-        key: 'chat',
-        value: processedMessage,
+        key: uuid,
+        value: {
+          message: processedMessage,
+          chatroomUUID,
+          userUUID,
+          timestamp: mockDate.toISOString(),
+        },
       });
     });
   });

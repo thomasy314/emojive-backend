@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
-import { MessageSchema } from '../messages/messages.schema';
+import { EventBusEvent } from '../events/events.types';
+import { MessageEvent, MessageSchema } from '../messages/messages.schema';
 import { WebSocketRouterFunction } from '../websocket/websocket-middleware-handler';
 import chatroomService from './chatrooms.service';
 import { JoinChatroomSchema } from './validation/join-chatroom.schema';
@@ -28,8 +29,15 @@ function chatroomController() {
   ): Promise<void> => {
     const { chatroomUUID, userUUID } = context as JoinChatroomSchema;
 
-    const onMessage = (message: object) => {
-      socket.send(JSON.stringify(message));
+    const onMessage = (event: EventBusEvent) => {
+      const eventValue = event.value as MessageEvent;
+
+      const outgoing = {
+        ...eventValue.message,
+        timeStamp: eventValue.timestamp,
+      };
+
+      socket.send(JSON.stringify(outgoing));
     };
 
     return chatroomService

@@ -1,5 +1,5 @@
 import { Kafka, Producer } from 'kafkajs';
-import { givenRandomJson, givenRandomString } from '../../utils/test-helpers';
+import { givenRandomObject, givenRandomString } from '../../utils/test-helpers';
 import { EventBusEvent, EventProducer } from '../events.types';
 import createKafkaProducer from './kakfa.producer';
 
@@ -48,7 +48,7 @@ describe('Events Producer', () => {
 
       const producerEvent: EventBusEvent = {
         key: givenRandomString(),
-        value: givenRandomJson(),
+        value: givenRandomObject(),
       };
 
       // Execute

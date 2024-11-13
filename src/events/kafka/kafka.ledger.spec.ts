@@ -1,5 +1,5 @@
 import { Kafka } from 'kafkajs';
-import { givenRandomJson, givenRandomString } from '../../utils/test-helpers';
+import { givenRandomObject, givenRandomString } from '../../utils/test-helpers';
 import { EventBusEvent } from '../events.types';
 import createKafkaConsumer from './kafka.consumer';
 import createKafkaLedger from './kafka.ledger';
@@ -62,7 +62,7 @@ describe('Kafka Ledger', () => {
       // Setup
       const message: EventBusEvent = {
         key: givenRandomString(),
-        value: givenRandomJson(),
+        value: givenRandomObject(),
       };
 
       // Execute
@@ -78,7 +78,7 @@ describe('Kafka Ledger', () => {
       const topic = 'non-existent-topic';
       const message: EventBusEvent = {
         key: givenRandomString(),
-        value: givenRandomJson(),
+        value: givenRandomObject(),
       };
 
       // Execute and Validate

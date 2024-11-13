@@ -1,14 +1,25 @@
-import { mongoClient, mongoDBName } from '../../config/mongodb.config';
+import { mongoClient } from '../../config/mongodb.config';
+
+type DocumentDBConnection = {
+  saveItem: (item: object) => Promise<unknown>;
+};
 
 async function createMongoConnection(
-  dbName: string = mongoDBName,
+  dbName: string,
   collectionName: string
-) {
+): Promise<DocumentDBConnection> {
   const mongoConnection = await mongoClient.connect();
   const db = mongoConnection.db(dbName);
-  // TODO: Remove below ling when adding functionality
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const collection = db.collection(collectionName);
+
+  function saveItem(item: object) {
+    return collection.insertOne(item);
+  }
+
+  return {
+    saveItem,
+  };
 }
 
 export default createMongoConnection;
+export type { DocumentDBConnection };

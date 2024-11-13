@@ -8,7 +8,7 @@ import {
 async function createKafkaConsumer(
   kafka: Kafka,
   groupId: string,
-  topics: string[]
+  topics: (string | RegExp)[]
 ): Promise<EventConsumer> {
   const consumer = kafka.consumer({ groupId });
 

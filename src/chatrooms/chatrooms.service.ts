@@ -1,5 +1,5 @@
 import { Kafka } from 'kafkajs';
-import { EventBusEvent } from '../events/events.types';
+import { EventBusEvent, EventConsumerHandler } from '../events/events.types';
 import kafkaEvents from '../events/kafka';
 import createKafkaAdmin from '../events/kafka/kafka.admin';
 import createKafkaLedger from '../events/kafka/kafka.ledger';
@@ -39,7 +39,7 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
   async function joinChatroom(
     chatroomUUID: string,
     userUUID: string,
-    onMessage: (message: object) => void
+    onMessage: EventConsumerHandler
   ) {
     await createChatroomUserLinkQuery(chatroomUUID, userUUID);
 
@@ -61,14 +61,19 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
       chatroomUUID,
       userUUID,
     };
-    const eventValue = await messagesService.processIncomingMessage(
+    const processedMessage = await messagesService.processIncomingMessage(
       message,
       messageMetadata
     );
 
     const eventBusMessage: EventBusEvent = {
-      key: message.messageType,
-      value: eventValue,
+      key: crypto.randomUUID(),
+      value: {
+        message: processedMessage,
+        chatroomUUID,
+        userUUID,
+        timestamp: new Date().toISOString(),
+      },
     };
 
     ledger.submitEvent(chatroomUUID, eventBusMessage);

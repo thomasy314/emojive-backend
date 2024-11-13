@@ -36,4 +36,28 @@ describe('MongoDB', () => {
       expect(mongoDbMock.collection).toHaveBeenCalledWith(collectionName);
     });
   });
+
+  describe('insertItem', () => {
+    test('GIVEN valid item THEN should insert the item into the collection', async () => {
+      // Setup
+      const dbName = 'testDB';
+      const collectionName = 'testCollection';
+      const item = { name: 'testItem' };
+      const insertOneMock = jest
+        .fn()
+        .mockResolvedValue({ insertedId: '12345' });
+      mongoCollectionMock.mockReturnValue({
+        insertOne: insertOneMock,
+      });
+
+      // Execute
+      const connection = await createMongoConnection(dbName, collectionName);
+      const result = await connection.saveItem(item);
+
+      // Validate
+      expect(insertOneMock).toHaveBeenCalledTimes(1);
+      expect(insertOneMock).toHaveBeenCalledWith(item);
+      expect(result).toEqual({ insertedId: '12345' });
+    });
+  });
 });

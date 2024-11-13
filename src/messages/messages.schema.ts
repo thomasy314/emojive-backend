@@ -1,3 +1,10 @@
+type MessageEvent = {
+  message: object;
+  chatroomUUID: string;
+  userUUID: string;
+  timestamp: string;
+};
+
 type MessageSchema = {
   messageType: 'chat' | 'join' | 'leave';
 };
@@ -11,4 +18,4 @@ type ChatMessageData = {
   sender: string;
 };
 
-export type { ChatMessageData, ChatMessageSchema, MessageSchema };
+export type { ChatMessageData, ChatMessageSchema, MessageEvent, MessageSchema };
