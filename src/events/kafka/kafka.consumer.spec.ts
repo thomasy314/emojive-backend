@@ -1,7 +1,7 @@
 import { Consumer, EachMessagePayload, Kafka, KafkaMessage } from 'kafkajs';
 import {
   givenRandomInt,
-  givenRandomJson,
+  givenRandomObject,
   givenRandomString,
 } from '../../utils/test-helpers';
 import { EventConsumer } from '../events.types';
@@ -62,7 +62,7 @@ describe('Events Consumer', () => {
 
       const partition = givenRandomInt();
       const messageKey = givenRandomString();
-      const messageValue = givenRandomJson();
+      const messageValue = givenRandomObject();
       const message = {
         key: messageKey,
         value: JSON.stringify(messageValue),
@@ -151,7 +151,7 @@ describe('Events Consumer', () => {
       const kafkaConsumerRunMock = jest.mocked(kafkaConsumer.run);
 
       const partition = givenRandomInt();
-      const messageValue = givenRandomJson();
+      const messageValue = givenRandomObject();
       const message = {
         key: null,
         value: JSON.stringify(messageValue),

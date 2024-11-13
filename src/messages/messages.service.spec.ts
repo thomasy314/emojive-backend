@@ -33,6 +33,7 @@ describe('MessageService', () => {
     expect(result).toEqual({
       messageText: messageText,
       sender: userData.user_name,
+      messageType: 'chat',
     });
   });
 
@@ -51,7 +52,9 @@ describe('MessageService', () => {
       'Message with unknown type: ',
       message
     );
-    expect(result).toEqual({});
+    expect(result).toEqual({
+      messageType: 'unknown',
+    });
   });
 
   test('GIVEN a chat message without userUUID WHEN processed THEN it should throw an error', async () => {

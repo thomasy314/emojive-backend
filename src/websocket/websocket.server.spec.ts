@@ -1,6 +1,6 @@
 import { IncomingMessage, Server } from 'http';
 import { MessageEvent, WebSocket, WebSocketServer } from 'ws';
-import { givenRandomJson, givenRandomString } from '../utils/test-helpers';
+import { givenRandomObject, givenRandomString } from '../utils/test-helpers';
 import {
   WebSocketRouter,
   default as websocketRouter,
@@ -130,7 +130,7 @@ describe('WebSocket Router', () => {
       test('GIVEN websocket message WHEN handling THEN should call router get method and event handler', () => {
         // Setup
         const messageEvent = {} as MessageEvent;
-        const eventJson = givenRandomJson();
+        const eventJson = givenRandomObject();
         messageEvent.toString = () => JSON.stringify(eventJson);
 
         const wssServer = createWebSocketServer(httpServer, websocketServer);

@@ -25,7 +25,11 @@ function messageService(): MessageService {
       processorLookup[message.messageType as keyof typeof processorLookup] ??
       _defaultMessageProcessor;
 
-    return await processor(message, messageData);
+    const formattedMessage = await processor(message, messageData);
+    return {
+      ...formattedMessage,
+      messageType: message.messageType,
+    };
   }
 
   function _defaultMessageProcessor(message: MessageSchema): object {

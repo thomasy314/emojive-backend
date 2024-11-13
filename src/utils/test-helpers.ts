@@ -2,8 +2,8 @@ import { random as randomEmoji } from 'node-emoji';
 import { LanguageTag } from '../languages/languages.types';
 import { ResponseError } from '../middleware/errorHandling/error.types';
 
-export function givenRandomString(length: number = 10) {
-  const characters = 'abcdefghijklmnopqrstuvwxyz1234567890';
+export function givenRandomString(length: number = 10, characterSet?: string) {
+  const characters = characterSet ?? 'abcdefghijklmnopqrstuvwxyz1234567890';
   let result = '';
   const charactersLength = characters.length;
   for (let i = 0; i < length; i++) {
@@ -13,7 +13,13 @@ export function givenRandomString(length: number = 10) {
 }
 
 export function givenValidUUID(): string {
-  return 'a1aa4073-d4d2-4135-b4d8-a24bf3e7dca6';
+  const hexCharacters = 'abcdef1234567890';
+  const part1 = givenRandomString(8, hexCharacters);
+  const part2 = givenRandomString(4, hexCharacters);
+  const part3 = givenRandomString(4, hexCharacters);
+  const part4 = givenRandomString(4, hexCharacters);
+  const part5 = givenRandomString(12, hexCharacters);
+  return `${part1}-${part2}-${part3}-${part4}-${part5}`;
 }
 
 export function givenInvalidUUID(): string {
@@ -37,7 +43,7 @@ export function givenRandomError() {
 
 export function givenRandomResponseError(
   statusCode: number = 500,
-  json: object = givenRandomJson(),
+  json: object = givenRandomObject(),
   externalMessage: string = givenRandomString()
 ) {
   const error = new Error(givenRandomString());
@@ -93,8 +99,10 @@ export function givenLanguageTag(
   };
 }
 
-export function givenRandomJson(additionalJson?: object) {
+export function givenRandomObject(additionalJson?: object) {
   return {
+    [givenRandomString()]: givenRandomString(),
+    [givenRandomString()]: givenRandomString(),
     [givenRandomString()]: givenRandomString(),
     ...additionalJson,
   };
