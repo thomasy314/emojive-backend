@@ -37,15 +37,12 @@ async function createChatroomUserLinkQuery(
   }
 }
 
-async function deleteChatroomUserLinkQuery(
-  chatroomUUID: string,
-  userUUID: string
-) {
+function deleteChatroomUserLinkQuery(chatroomUUID: string, userUUID: string) {
   const queryText =
     'DELETE FROM chatrooms_users WHERE chatroom_id IN (SELECT chatroom_id FROM chatrooms WHERE chatroom_uuid = $1) AND user_id IN (SELECT user_id FROM users WHERE user_uuid = $2)';
   const values = [chatroomUUID, userUUID];
 
-  await query(queryText, values);
+  return query(queryText, values);
 }
 
 export {

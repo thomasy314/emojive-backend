@@ -33,4 +33,10 @@ chatroomWebSocketRouter.onWebSocketClose(
   chatroomController.leaveChatroom
 );
 
+chatroomWebSocketRouter.onWebSocketError(
+  '/',
+  leaveChatroomValidator,
+  chatroomController.leaveChatroom
+);
+
 export { chatroomRouter, chatroomWebSocketRouter };

@@ -2,7 +2,6 @@ import { JSONSchemaType } from 'ajv';
 import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
 import createWebSocketValidator, {
-  getConnectionCloseContextData,
   getConnectionParamContextData,
   getConnectionUserUUIDContextData,
 } from '../../websocket/websocket.validator';
@@ -10,8 +9,6 @@ import createWebSocketValidator, {
 type LeaveChatroomSchema = {
   chatroomUUID: string;
   userUUID: string;
-  closeCode: number;
-  closeReason: string;
 };
 
 const leaveChatroomSchema: JSONSchemaType<LeaveChatroomSchema> = {
@@ -35,23 +32,9 @@ const leaveChatroomSchema: JSONSchemaType<LeaveChatroomSchema> = {
         format: `${VALIDATION_ERRORS.FORMAT} UUID`,
       },
     },
-    closeCode: {
-      type: 'number',
-      nullable: false,
-      errorMessage: {
-        type: `${VALIDATION_ERRORS.TYPE} Number`,
-      },
-    },
-    closeReason: {
-      type: 'string',
-      nullable: false,
-      errorMessage: {
-        type: `${VALIDATION_ERRORS.TYPE} String`,
-      },
-    },
   },
 
-  required: ['chatroomUUID', 'userUUID', 'closeCode', 'closeReason'],
+  required: ['chatroomUUID', 'userUUID'],
   additionalProperties: true,
 };
 
@@ -60,8 +43,7 @@ const validateCreateChatroom = ajv.compile(leaveChatroomSchema);
 const leaveChatroomValidator = createWebSocketValidator(
   validateCreateChatroom,
   getConnectionUserUUIDContextData,
-  getConnectionParamContextData,
-  getConnectionCloseContextData
+  getConnectionParamContextData
 );
 
 export { leaveChatroomValidator };

@@ -211,5 +211,29 @@ describe('WebSocket Router', () => {
 
       expect(wssServer.httpServer).toBe(httpServer);
     });
+
+    test('GIVEN websocket error event WHEN handling THEN should call router get method and event handler', () => {
+      // Setup
+      const error = new Error(givenRandomString());
+
+      const wssServer = createWebSocketServer(httpServer, websocketServer);
+
+      // Execute
+      websocketServer.emit('connection', socket, incomingMessageMock);
+      socket.emit('error', error);
+
+      // Validate
+      expect(routerMock.get).toHaveBeenCalledTimes(2);
+      expect(routerMock.get).toHaveBeenNthCalledWith(1, url, 'connection');
+      expect(routerMock.get).toHaveBeenNthCalledWith(2, url, 'error');
+
+      expect(eventHandler.handle).toHaveBeenCalledTimes(2);
+      expect(eventHandler.handle).toHaveBeenCalledWith(socket, {
+        error,
+        ...incomingMessageMock,
+      });
+
+      expect(wssServer.httpServer).toBe(httpServer);
+    });
   });
 });

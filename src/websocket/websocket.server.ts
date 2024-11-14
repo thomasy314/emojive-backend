@@ -64,10 +64,23 @@ function createWebSocketServer(
         const eventData = {
           code,
           reason,
-          ...request,
+          headers: request.headers,
+          url: request.url,
         };
 
         onCloseHandlers.handle(socket, eventData);
+      });
+
+      socket.addListener('error', (error: Error) => {
+        const onErrorHandlers = router.get(requestUrl.pathname, 'error');
+
+        const eventData = {
+          error,
+          headers: request.headers,
+          url: request.url,
+        };
+
+        onErrorHandlers.handle(socket, eventData);
       });
     }
   );

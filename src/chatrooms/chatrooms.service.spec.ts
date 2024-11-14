@@ -211,10 +211,15 @@ describe('Chatroom Service', () => {
 
     test('Given valid chatroom and user UUIDs THEN user is removed from chatroom', async () => {
       // Setup
+
+      const deleteChatroomUserLinkQueryResult = {} as QueryResult;
+
       const deleteChatroomUserLinkQueryMock = jest.mocked(
         deleteChatroomUserLinkQuery
       );
-      deleteChatroomUserLinkQueryMock.mockResolvedValueOnce();
+      deleteChatroomUserLinkQueryMock.mockResolvedValueOnce(
+        deleteChatroomUserLinkQueryResult
+      );
 
       // Execute
       await chatroomService.leaveChatroom(chatroomUUID, userUUID);
