@@ -26,6 +26,10 @@ interface WebSocketRouter {
     path: string,
     ...handlers: WebSocketRouterFunction[]
   ) => void;
+  onWebSocketError: (
+    path: string,
+    ...handlers: WebSocketRouterFunction[]
+  ) => void;
   merge: (path: string, otherRouter: WebSocketRouter) => void;
   get: (path: string, event: string) => WebSocketRouterHandler;
   _getRootNode: () => WebSocketRouterNode;
@@ -54,6 +58,10 @@ function websocketRouter(): WebSocketRouter {
       if (curNode === undefined || curNode == null) {
         break;
       }
+    }
+
+    if (middleware.length === 0) {
+      throw new Error('No middleware found for path: ' + path);
     }
 
     return websocketMiddlewareHandler(...middleware);
@@ -88,6 +96,13 @@ function websocketRouter(): WebSocketRouter {
     ...handlers: WebSocketRouterFunction[]
   ) {
     on(path, 'close', ...handlers);
+  }
+
+  function onWebSocketError(
+    path: string,
+    ...handlers: WebSocketRouterFunction[]
+  ) {
+    on(path, 'error', ...handlers);
   }
 
   function merge(path: string, otherRouter: WebSocketRouter) {
@@ -133,6 +148,7 @@ function websocketRouter(): WebSocketRouter {
     onWebSocketMessage,
     onWebSocketConnection,
     onWebSocketClose,
+    onWebSocketError,
     get,
     _getRootNode,
     merge,

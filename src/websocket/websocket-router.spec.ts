@@ -39,20 +39,21 @@ describe('WebSocket Router', () => {
     expect(returnedHandler).toBe(handler);
   });
 
-  test('GIVEN a path, event not in lookup THEN empty handler is returned', () => {
+  test('GIVEN a path, event not in lookup THEN error is thrown', () => {
     // Setup
     const path = givenRandomString();
     const event = givenRandomString();
 
     const router = websocketRouter();
 
-    // Get handler
-    const returnedHandler = router.get(path, event);
-
-    // Validate
-    expect(websocketMiddlewareHandler).toHaveBeenCalledTimes(1);
-
-    expect(returnedHandler).toBe(handler);
+    // Execute & Validate
+    try {
+      router.get(path, event);
+    } catch (error) {
+      expect((error as Error).message).toBe(
+        `No middleware found for path: ${path}`
+      );
+    }
   });
 
   describe('Router Merge', () => {
@@ -167,6 +168,25 @@ describe('WebSocket Router', () => {
 
     // Get handler
     const returnedHandler = router.get(path, 'close');
+
+    // Validate
+    expect(websocketMiddlewareHandler).toHaveBeenCalledTimes(1);
+
+    expect(returnedHandler).toBe(handler);
+  });
+
+  test('GIVEN a path and handler for WebSocket error event THEN handler is added to router', () => {
+    // Setup
+    const path = givenRandomString();
+    const handlerFunction = jest.fn();
+
+    const router = websocketRouter();
+
+    // Add handler
+    router.onWebSocketError(path, handlerFunction);
+
+    // Get handler
+    const returnedHandler = router.get(path, 'error');
 
     // Validate
     expect(websocketMiddlewareHandler).toHaveBeenCalledTimes(1);

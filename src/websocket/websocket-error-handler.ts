@@ -18,11 +18,17 @@ async function websocketErrorHandler(
     error: formattedError.externalMessage,
     ...formattedError.json,
   });
-  socket.send(errorResponse);
-  socket.close(
-    formattedError.status,
-    'See previous websocket message for details'
-  );
+
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(errorResponse);
+    socket.close(
+      formattedError.status,
+      'See previous websocket message for details'
+    );
+  } else {
+    console.error(`Socket is unable to receive error: ${errorResponse}`);
+  }
+
   return formattedError;
 }
 
