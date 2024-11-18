@@ -58,7 +58,7 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
     ledger.registerConsumerHandler(userUUID, handler);
   }
 
-  async function receiveChatroomMessage(
+  async function emitChatroomMessage(
     chatroomUUID: string,
     userUUID: string,
     message: MessageSchema
@@ -101,7 +101,7 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
     addChatroomMessageReceiver,
     getUserChatrooms,
     leaveChatroom,
-    receiveChatroomMessage,
+    emitChatroomMessage,
   };
 }
 
