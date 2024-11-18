@@ -1,14 +1,10 @@
 import { JSONSchemaType } from 'ajv';
 import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
-import createWebSocketValidator, {
-  getConnectionChatroomUUIDContextData,
-  getConnectionUserUUIDContextData,
-} from '../../websocket/websocket.validator';
+import createExpressValidator from '../../middleware/validation/express.validator';
 
 type JoinChatroomSchema = {
   chatroomUUID: string;
-  userUUID: string;
 };
 
 const joinChatroomSchema: JSONSchemaType<JoinChatroomSchema> = {
@@ -23,27 +19,14 @@ const joinChatroomSchema: JSONSchemaType<JoinChatroomSchema> = {
         format: `${VALIDATION_ERRORS.FORMAT} UUID`,
       },
     },
-    userUUID: {
-      type: 'string',
-      format: 'uuid',
-      nullable: false,
-      errorMessage: {
-        type: `${VALIDATION_ERRORS.TYPE} String`,
-        format: `${VALIDATION_ERRORS.FORMAT} UUID`,
-      },
-    },
   },
-  required: ['chatroomUUID', 'userUUID'],
+  required: ['chatroomUUID'],
   additionalProperties: false,
 };
 
 const validateCreateChatroom = ajv.compile(joinChatroomSchema);
 
-const joinCharoomValidator = createWebSocketValidator(
-  validateCreateChatroom,
-  getConnectionUserUUIDContextData,
-  getConnectionChatroomUUIDContextData
-);
+const joinCharoomValidator = createExpressValidator(validateCreateChatroom);
 
 export { joinCharoomValidator };
 export type { JoinChatroomSchema };
