@@ -15,7 +15,7 @@ describe('Kafka Ledger', () => {
   let groupId: string;
   let topic: string;
 
-  const mockConsumer = { destroy: jest.fn() };
+  const mockConsumer = { destroy: jest.fn(), setEventHandler: jest.fn() };
   const mockProducer = { sendMessage: jest.fn(), destroy: jest.fn() };
 
   beforeEach(() => {
@@ -43,6 +43,31 @@ describe('Kafka Ledger', () => {
         topic,
       ]);
       expect(consumer).toBe(mockConsumer);
+    });
+  });
+
+  describe('Register Consumer Handler', () => {
+    test('GIVEN a groupId and handler WHEN registering a consumer handler THEN it should register the handler', async () => {
+      // Setup
+      const handler = jest.fn();
+      await kafkaLedger.addConsumer(groupId, [topic]);
+
+      // Execute
+      kafkaLedger.registerConsumerHandler(groupId, handler);
+
+      // Validate
+      expect(mockConsumer.setEventHandler).toHaveBeenCalledWith(handler);
+    });
+
+    test('GIVEN a non-existent consumer WHEN registering a consumer handler THEN it should throw an error', () => {
+      // Setup
+      const handler = jest.fn();
+      const nonExistentGroupId = 'non-existent-group';
+
+      // Execute and Validate
+      expect(() =>
+        kafkaLedger.registerConsumerHandler(nonExistentGroupId, handler)
+      ).toThrow(`Consumer for group ${nonExistentGroupId} not found`);
     });
   });
 

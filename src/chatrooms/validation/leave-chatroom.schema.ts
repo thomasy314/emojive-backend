@@ -2,7 +2,7 @@ import { JSONSchemaType } from 'ajv';
 import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
 import createWebSocketValidator, {
-  getConnectionParamContextData,
+  getConnectionChatroomUUIDContextData,
   getConnectionUserUUIDContextData,
 } from '../../websocket/websocket.validator';
 
@@ -43,7 +43,7 @@ const validateCreateChatroom = ajv.compile(leaveChatroomSchema);
 const leaveChatroomValidator = createWebSocketValidator(
   validateCreateChatroom,
   getConnectionUserUUIDContextData,
-  getConnectionParamContextData
+  getConnectionChatroomUUIDContextData
 );
 
 export { leaveChatroomValidator };

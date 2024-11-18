@@ -3,8 +3,8 @@ import { MessageSchema } from '../../messages/messages.schema';
 import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
 import createWebSocketValidator, {
+  getConnectionChatroomUUIDContextData,
   getConnectionMessageContextData,
-  getConnectionParamContextData,
   getConnectionUserUUIDContextData,
 } from '../../websocket/websocket.validator';
 
@@ -92,7 +92,7 @@ const validateReceiveChatroomMessage = ajv.compile(
 const receiveChatroomMessageValidator = createWebSocketValidator(
   validateReceiveChatroomMessage,
   getConnectionUserUUIDContextData,
-  getConnectionParamContextData,
+  getConnectionChatroomUUIDContextData,
   getConnectionMessageContextData
 );
 

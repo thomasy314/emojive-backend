@@ -1,7 +1,7 @@
 import { IncomingMessage } from 'http';
 import { WebSocket } from 'ws';
 import authService from '../../auth/auth.service';
-import catchError from '../../errorHandling/catch-error';
+import { catchError } from '../../errorHandling/catch-error';
 import webSocketCloseCode from '../../websocket/websocket-close-codes';
 import { WebSocketNextFunction } from '../../websocket/websocket-middleware-handler';
 import { ResponseError } from '../errorHandling/error.types';

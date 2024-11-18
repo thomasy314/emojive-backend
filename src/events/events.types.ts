@@ -22,6 +22,10 @@ interface EventProducer {
 
 interface EventLedger {
   addConsumer: (groupId: string, topics: string[]) => Promise<EventConsumer>;
+  registerConsumerHandler: (
+    groupId: string,
+    handler: EventConsumerHandler
+  ) => void;
   addProducer: (topic: string) => Promise<EventProducer>;
   submitEvent: (topic: string, message: EventBusEvent) => Promise<void>;
   removeConsumer: (groupId: string) => void;

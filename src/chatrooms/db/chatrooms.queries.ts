@@ -45,8 +45,18 @@ function deleteChatroomUserLinkQuery(chatroomUUID: string, userUUID: string) {
   return query(queryText, values);
 }
 
+function getUsersChatroomsQuery(userUUId: string) {
+  const queryText =
+    'SELECT chatrooms.chatroom_uuid FROM chatrooms JOIN chatrooms_users ON chatrooms.chatroom_id = chatrooms_users.chatroom_id JOIN users ON users.user_id = chatrooms_users.user_id WHERE users.user_uuid = $1';
+
+  const values = [userUUId];
+
+  return query(queryText, values);
+}
+
 export {
   createChatroomQuery,
   createChatroomUserLinkQuery,
   deleteChatroomUserLinkQuery,
+  getUsersChatroomsQuery,
 };

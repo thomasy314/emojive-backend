@@ -4,7 +4,18 @@ describe('Emoji Helpers', () => {
   describe('isOnlyEmojis', () => {
     test('GIVEN only emoji text THEN return true', () => {
       // Setup
-      const text = '🔒💅🚑🏺';
+      const text = '📋🚶🅿️⛄️🔪🔦🚋💳📋';
+
+      // Execute
+      const result = isOnlyEmojis(text);
+
+      // Validate
+      expect(result).toBe(true);
+    });
+
+    test('GIVEN compound emoji text THEN return true', () => {
+      // Setup
+      const text = '🍄‍🟫';
 
       // Execute
       const result = isOnlyEmojis(text);

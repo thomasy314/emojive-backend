@@ -1,8 +1,8 @@
-import { strip as emojiStrip } from 'node-emoji';
+const NON_EMOJI_REGEX = /[^\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\s]/gu;
 
-function isOnlyEmojis(test: string) {
-  const strippedText = emojiStrip(test);
-  return strippedText.length === 0;
+function isOnlyEmojis(text: string) {
+  const foundNonEmoji = text.match(NON_EMOJI_REGEX);
+  return foundNonEmoji === null;
 }
 
 export { isOnlyEmojis };
