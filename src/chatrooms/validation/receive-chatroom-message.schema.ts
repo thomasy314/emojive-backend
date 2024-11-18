@@ -3,14 +3,12 @@ import { MessageSchema } from '../../messages/messages.schema';
 import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
 import createWebSocketValidator, {
-  getConnectionChatroomUUIDContextData,
   getConnectionMessageContextData,
   getConnectionUserUUIDContextData,
 } from '../../websocket/websocket.validator';
 
 type ReceiveChatroomMessageSchema = {
   userUUID: string;
-  chatroomUUID: string;
   message: MessageSchema;
 };
 
@@ -18,15 +16,6 @@ const receiveChatroomMessageSchema: JSONSchemaType<ReceiveChatroomMessageSchema>
   {
     type: 'object',
     properties: {
-      chatroomUUID: {
-        type: 'string',
-        format: 'uuid',
-        nullable: false,
-        errorMessage: {
-          type: `${VALIDATION_ERRORS.TYPE} String`,
-          format: `${VALIDATION_ERRORS.FORMAT} UUID`,
-        },
-      },
       userUUID: {
         type: 'string',
         format: 'uuid',
@@ -81,7 +70,7 @@ const receiveChatroomMessageSchema: JSONSchemaType<ReceiveChatroomMessageSchema>
         additionalProperties: true,
       },
     },
-    required: ['chatroomUUID', 'userUUID', 'message'],
+    required: ['userUUID', 'message'],
     additionalProperties: false,
   };
 
@@ -92,7 +81,6 @@ const validateReceiveChatroomMessage = ajv.compile(
 const receiveChatroomMessageValidator = createWebSocketValidator(
   validateReceiveChatroomMessage,
   getConnectionUserUUIDContextData,
-  getConnectionChatroomUUIDContextData,
   getConnectionMessageContextData
 );
 

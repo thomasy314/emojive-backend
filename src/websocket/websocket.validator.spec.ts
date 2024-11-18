@@ -3,7 +3,6 @@ import { WebSocket } from 'ws';
 import ajv from '../middleware/validation/ajv';
 import { givenRandomString, givenValidUUID } from '../utils/test-helpers';
 import createWebSocketValidator, {
-  getConnectionChatroomUUIDContextData,
   getConnectionCloseContextData,
   getConnectionMessageContextData,
   getConnectionParamContextData,
@@ -140,20 +139,6 @@ describe('WebSocket Validator', () => {
       // Validate
       expect(data).toStrictEqual({
         userUUID,
-      });
-    });
-
-    test('GIVEN connection context THEN getConnectionChatroomUUIDContextData returns userUUID in objects', () => {
-      // Setup
-      const chatroomUUID = givenValidUUID();
-      const context = { chatroomUUID };
-
-      // Execute
-      const data = getConnectionChatroomUUIDContextData(context);
-
-      // Validate
-      expect(data).toStrictEqual({
-        chatroomUUID,
       });
     });
   });

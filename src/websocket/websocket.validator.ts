@@ -35,11 +35,6 @@ function getConnectionUserUUIDContextData(context: unknown) {
   return { userUUID };
 }
 
-function getConnectionChatroomUUIDContextData(context: unknown) {
-  const { chatroomUUID } = context as { chatroomUUID: string };
-  return { chatroomUUID };
-}
-
 function createWebSocketValidator(
   validateFunction: ValidateFunction,
   ...getContextDataFunctions: GetContextDataFunction[]
@@ -69,7 +64,6 @@ function createWebSocketValidator(
 
 export default createWebSocketValidator;
 export {
-  getConnectionChatroomUUIDContextData,
   getConnectionCloseContextData,
   getConnectionMessageContextData,
   getConnectionParamContextData,

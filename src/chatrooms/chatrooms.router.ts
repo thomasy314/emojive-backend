@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import websocketRouter from '../websocket/websocket-router';
 import chatroomController from './chatrooms.controller';
+import { chatroomWebsocketValidator } from './validation/chatroom-websocket.schema';
 import { createCharoomValidator } from './validation/create-chatroom.schema';
 import { joinCharoomValidator } from './validation/join-chatroom.schema';
 import { leaveChatroomValidator } from './validation/leave-chatroom.schema';
@@ -17,35 +18,35 @@ chatroomRouter.post(
 
 chatroomRouter.post(
   '/join',
-  // joinCharoomValidator,
+  joinCharoomValidator,
   chatroomController.joinChatroom
 );
 
 chatroomWebSocketRouter.onWebSocketConnection(
   '/',
+  chatroomWebsocketValidator,
   chatroomController.addUserChatroomsToContext,
-  joinCharoomValidator,
   chatroomController.registerUserMessageHandler
 );
 
 chatroomWebSocketRouter.onWebSocketMessage(
   '/',
-  chatroomController.addUserChatroomsToContext,
   receiveChatroomMessageValidator,
+  chatroomController.addUserChatroomsToContext,
   chatroomController.receiveChatroomMessage
 );
 
 chatroomWebSocketRouter.onWebSocketClose(
   '/',
-  chatroomController.addUserChatroomsToContext,
   leaveChatroomValidator,
+  chatroomController.addUserChatroomsToContext,
   chatroomController.leaveChatroom
 );
 
 chatroomWebSocketRouter.onWebSocketError(
   '/',
-  chatroomController.addUserChatroomsToContext,
   leaveChatroomValidator,
+  chatroomController.addUserChatroomsToContext,
   chatroomController.leaveChatroom
 );
 

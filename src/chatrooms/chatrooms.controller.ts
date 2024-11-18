@@ -5,7 +5,7 @@ import { EventBusEvent } from '../events/events.types';
 import { MessageEvent, MessageSchema } from '../messages/messages.schema';
 import { WebSocketRouterFunction } from '../websocket/websocket-middleware-handler';
 import chatroomService from './chatrooms.service';
-import { JoinChatroomSchema } from './validation/join-chatroom.schema';
+import { ChatroomWebSocketSchema } from './validation/chatroom-websocket.schema';
 import { LeaveChatroomSchema } from './validation/leave-chatroom.schema';
 
 function chatroomController() {
@@ -45,7 +45,7 @@ function chatroomController() {
     context,
     next
   ): Promise<void> => {
-    const { userUUID } = context as JoinChatroomSchema;
+    const { userUUID } = context as ChatroomWebSocketSchema;
 
     const [error, chatrooms] = await catchAsyncError(() =>
       chatroomService.getUserChatrooms(userUUID)
@@ -78,7 +78,8 @@ function chatroomController() {
     context,
     next
   ): Promise<void> => {
-    const { userUUID, chatroomUUID } = context as JoinChatroomSchema;
+    const { userUUID } = context as ChatroomWebSocketSchema;
+    const { chatroomUUID } = context as { chatroomUUID: string };
 
     const onMessage = (event: EventBusEvent) => {
       const eventValue = event.value as MessageEvent;
@@ -113,7 +114,8 @@ function chatroomController() {
   };
 
   const leaveChatroom: WebSocketRouterFunction = (socket, context, next) => {
-    const { chatroomUUID, userUUID } = context as LeaveChatroomSchema;
+    const { userUUID } = context as LeaveChatroomSchema;
+    const { chatroomUUID } = context as { chatroomUUID: string };
 
     console.log('leaving chatroom: ', chatroomUUID, userUUID);
 

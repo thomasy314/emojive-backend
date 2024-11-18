@@ -5,11 +5,11 @@ import createWebSocketValidator, {
   getConnectionUserUUIDContextData,
 } from '../../websocket/websocket.validator';
 
-type LeaveChatroomSchema = {
+type ChatroomWebSocketSchema = {
   userUUID: string;
 };
 
-const leaveChatroomSchema: JSONSchemaType<LeaveChatroomSchema> = {
+const chatroomWebSocketSchema: JSONSchemaType<ChatroomWebSocketSchema> = {
   type: 'object',
   properties: {
     userUUID: {
@@ -22,17 +22,16 @@ const leaveChatroomSchema: JSONSchemaType<LeaveChatroomSchema> = {
       },
     },
   },
-
   required: ['userUUID'],
-  additionalProperties: true,
+  additionalProperties: false,
 };
 
-const validateCreateChatroom = ajv.compile(leaveChatroomSchema);
+const validateChatroomWebsocket = ajv.compile(chatroomWebSocketSchema);
 
-const leaveChatroomValidator = createWebSocketValidator(
-  validateCreateChatroom,
+const chatroomWebsocketValidator = createWebSocketValidator(
+  validateChatroomWebsocket,
   getConnectionUserUUIDContextData
 );
 
-export { leaveChatroomValidator };
-export type { LeaveChatroomSchema };
+export { chatroomWebsocketValidator };
+export type { ChatroomWebSocketSchema };
