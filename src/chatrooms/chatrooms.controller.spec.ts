@@ -300,7 +300,8 @@ describe('Chatroom Controller', () => {
         expect.any(Function)
       );
 
-      expect(next).toHaveBeenCalledTimes(0);
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith();
     });
 
     test('GIVEN error occurs while registering message handler THEN next function is called', async () => {
@@ -382,11 +383,12 @@ describe('Chatroom Controller', () => {
         })
       );
 
-      expect(next).toHaveBeenCalledTimes(0);
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith();
     });
   });
 
-  describe('Receive Chatroom Message', () => {
+  describe('Emit Chatroom Message', () => {
     test('GIVEN chatroom UUID, user UUID, and message THEN chatroom service is called', async () => {
       // Setup
       const socket = {} as WebSocket;
@@ -397,7 +399,7 @@ describe('Chatroom Controller', () => {
       };
 
       const receiveChatroomMessageMock = jest.mocked(
-        chatroomService.receiveChatroomMessage
+        chatroomService.emitChatroomMessage
       );
       receiveChatroomMessageMock.mockResolvedValueOnce();
 
@@ -425,7 +427,7 @@ describe('Chatroom Controller', () => {
       };
 
       const receiveChatroomMessageMock = jest.mocked(
-        chatroomService.receiveChatroomMessage
+        chatroomService.emitChatroomMessage
       );
       receiveChatroomMessageMock.mockRejectedValueOnce('Evil');
 
@@ -458,13 +460,14 @@ describe('Chatroom Controller', () => {
       leaveChatroomMock.mockResolvedValueOnce();
 
       // Execute
-      chatroomController.leaveChatroom(socket, context, next);
+      await chatroomController.leaveChatroom(socket, context, next);
 
       // Validate
       expect(leaveChatroomMock).toHaveBeenCalledTimes(1);
       expect(leaveChatroomMock).toHaveBeenCalledWith(chatroomUUID, userUUID);
 
-      expect(next).toHaveBeenCalledTimes(0);
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith();
     });
 
     test('GIVEN error occurs while leaving chatroom THEN next function is called', async () => {
@@ -485,6 +488,136 @@ describe('Chatroom Controller', () => {
       // Validate
       expect(leaveChatroomMock).toHaveBeenCalledTimes(1);
       expect(leaveChatroomMock).toHaveBeenCalledWith(chatroomUUID, userUUID);
+
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith('Evil');
+    });
+  });
+
+  describe('Emit User Joined Chatroom Message', () => {
+    test('GIVEN user UUID and chatroom UUID THEN chatroom service is called', async () => {
+      // Setup
+      const socket = {} as WebSocket;
+      const context = {
+        userUUID,
+        chatroomUUID,
+      };
+
+      const emitChatroomMessageMock = jest.mocked(
+        chatroomService.emitChatroomMessage
+      );
+      emitChatroomMessageMock.mockResolvedValueOnce();
+
+      // Execute
+      await chatroomController.emitUserJoinedChatroomMessage(
+        socket,
+        context,
+        next
+      );
+
+      // Validate
+      expect(emitChatroomMessageMock).toHaveBeenCalledTimes(1);
+      expect(emitChatroomMessageMock).toHaveBeenCalledWith(
+        chatroomUUID,
+        userUUID,
+        { messageType: 'join' }
+      );
+
+      expect(next).toHaveBeenCalledTimes(0);
+    });
+
+    test('GIVEN error occurs while emitting join message THEN next function is called', async () => {
+      // Setup
+      const socket = {} as WebSocket;
+      const context = {
+        userUUID,
+        chatroomUUID,
+      };
+
+      const emitChatroomMessageMock = jest.mocked(
+        chatroomService.emitChatroomMessage
+      );
+      emitChatroomMessageMock.mockRejectedValueOnce('Evil');
+
+      // Execute
+      await chatroomController.emitUserJoinedChatroomMessage(
+        socket,
+        context,
+        next
+      );
+
+      // Validate
+      expect(emitChatroomMessageMock).toHaveBeenCalledTimes(1);
+      expect(emitChatroomMessageMock).toHaveBeenCalledWith(
+        chatroomUUID,
+        userUUID,
+        { messageType: 'join' }
+      );
+
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith('Evil');
+    });
+  });
+
+  describe('Emit User Left Chatroom Message', () => {
+    test('GIVEN user UUID and chatroom UUID THEN chatroom service is called', async () => {
+      // Setup
+      const socket = {} as WebSocket;
+      const context = {
+        userUUID,
+        chatroomUUID,
+      };
+
+      const emitChatroomMessageMock = jest.mocked(
+        chatroomService.emitChatroomMessage
+      );
+      emitChatroomMessageMock.mockResolvedValueOnce();
+
+      // Execute
+      await chatroomController.emitUserLeftChatroomMessage(
+        socket,
+        context,
+        next
+      );
+
+      // Validate
+      expect(emitChatroomMessageMock).toHaveBeenCalledTimes(1);
+      expect(emitChatroomMessageMock).toHaveBeenCalledWith(
+        chatroomUUID,
+        userUUID,
+        { messageType: 'leave' }
+      );
+
+      expect(next).toHaveBeenCalledTimes(0);
+    });
+
+    test('GIVEN error occurs while emitting leave message THEN next function is called', async () => {
+      // Setup
+      const socket = {} as WebSocket;
+      const context = {
+        userUUID,
+        chatroomUUID,
+      };
+
+      const emitChatroomMessageMock = jest.mocked(
+        chatroomService.emitChatroomMessage
+      );
+      emitChatroomMessageMock.mockRejectedValueOnce('Evil');
+
+      // Execute
+      await chatroomController.emitUserLeftChatroomMessage(
+        socket,
+        context,
+        next
+      );
+
+      // Validate
+      expect(emitChatroomMessageMock).toHaveBeenCalledTimes(1);
+      expect(emitChatroomMessageMock).toHaveBeenCalledWith(
+        chatroomUUID,
+        userUUID,
+        { messageType: 'leave' }
+      );
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith('Evil');

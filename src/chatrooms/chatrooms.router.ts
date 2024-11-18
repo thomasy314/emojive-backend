@@ -26,7 +26,8 @@ chatroomWebSocketRouter.onWebSocketConnection(
   '/',
   chatroomWebsocketValidator,
   chatroomController.addUserChatroomsToContext,
-  chatroomController.registerUserMessageHandler
+  chatroomController.registerUserMessageHandler,
+  chatroomController.emitUserJoinedChatroomMessage
 );
 
 chatroomWebSocketRouter.onWebSocketMessage(
@@ -40,14 +41,16 @@ chatroomWebSocketRouter.onWebSocketClose(
   '/',
   leaveChatroomValidator,
   chatroomController.addUserChatroomsToContext,
-  chatroomController.leaveChatroom
+  chatroomController.leaveChatroom,
+  chatroomController.emitUserLeftChatroomMessage
 );
 
 chatroomWebSocketRouter.onWebSocketError(
   '/',
   leaveChatroomValidator,
   chatroomController.addUserChatroomsToContext,
-  chatroomController.leaveChatroom
+  chatroomController.leaveChatroom,
+  chatroomController.emitUserLeftChatroomMessage
 );
 
 export { chatroomRouter, chatroomWebSocketRouter };

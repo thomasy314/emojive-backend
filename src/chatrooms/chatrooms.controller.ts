@@ -92,8 +92,45 @@ function chatroomController() {
       socket.send(JSON.stringify(outgoing));
     };
 
-    return chatroomService
+    await chatroomService
       .addChatroomMessageReceiver(userUUID, chatroomUUID, onMessage)
+      .then(() => next())
+      .catch(next);
+  };
+
+  const emitUserJoinedChatroomMessage: WebSocketRouterFunction = (
+    socket,
+    context,
+    next
+  ): Promise<void> => {
+    const { userUUID } = context as ChatroomWebSocketSchema;
+    const { chatroomUUID } = context as { chatroomUUID: string };
+
+    const userJoinedMessage: MessageSchema = {
+      messageType: 'join',
+    };
+
+    return chatroomService
+      .emitChatroomMessage(chatroomUUID, userUUID, userJoinedMessage)
+      .catch(next);
+  };
+
+  const emitUserLeftChatroomMessage: WebSocketRouterFunction = (
+    socket,
+    context,
+    next
+  ): Promise<void> => {
+    const { userUUID } = context as ChatroomWebSocketSchema;
+    const { chatroomUUID } = context as { chatroomUUID: string };
+
+    console.log('User left chatroom', userUUID, chatroomUUID);
+
+    const userJoinedMessage: MessageSchema = {
+      messageType: 'leave',
+    };
+
+    return chatroomService
+      .emitChatroomMessage(chatroomUUID, userUUID, userJoinedMessage)
       .catch(next);
   };
 
@@ -109,7 +146,7 @@ function chatroomController() {
     };
 
     return chatroomService
-      .receiveChatroomMessage(chatroomUUID, userUUID, message)
+      .emitChatroomMessage(chatroomUUID, userUUID, message)
       .catch(next);
   };
 
@@ -117,9 +154,10 @@ function chatroomController() {
     const { userUUID } = context as LeaveChatroomSchema;
     const { chatroomUUID } = context as { chatroomUUID: string };
 
-    console.log('leaving chatroom: ', chatroomUUID, userUUID);
-
-    chatroomService.leaveChatroom(chatroomUUID, userUUID).catch(next);
+    return chatroomService
+      .leaveChatroom(chatroomUUID, userUUID)
+      .then(() => next())
+      .catch(next);
   };
 
   return {
@@ -127,6 +165,8 @@ function chatroomController() {
     joinChatroom,
     addUserChatroomsToContext,
     registerUserMessageHandler,
+    emitUserJoinedChatroomMessage,
+    emitUserLeftChatroomMessage,
     receiveChatroomMessage,
     leaveChatroom,
   };

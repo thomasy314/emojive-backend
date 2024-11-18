@@ -284,7 +284,7 @@ describe('Chatroom Service', () => {
       jest.useFakeTimers().setSystemTime(mockDate);
 
       // Execute
-      await chatroomService.receiveChatroomMessage(
+      await chatroomService.emitChatroomMessage(
         chatroomUUID,
         userUUID,
         message
