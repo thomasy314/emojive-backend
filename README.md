@@ -212,25 +212,39 @@ Creates new chatroom users can then join to communicate in.
 }
 ```
 
-#### <ins>Join Chatroom - WebSocket</ins>
+#### <ins>Join Chatroom</ins>
 
 Allows users to join a chatroom, also establishing a websocket connection to send messages to and from the chatroom servers.
 
+Registers user within a chatroom. To actually send and receive messages, they will now need to make a WebSocket connection with the server. See [Chatroom Websocket](#chatroom---websocket) below;
+
 **URL:** `/chatroom`
 
-**Method:** `WEBSOCKET`
+**Method:** `POST`
 
 **Auth Required:** YES
 
-**URL Parameters:**
+**Body**
 
 <ins>chatroomUUID</ins> - _string (UUID)_ : The UUID of the chatroom the user is joining
 
 **Example**
 
 ```
-/chatroom?chatroomUUID=9b2e0258-d6db-4a6f-97a6-e2204776eb01
+{
+  "chatroomUUID" : "9b2e0258-d6db-4a6f-97a6-e2204776eb01"
+}
 ```
+
+#### <ins>Chatroom - WebSocket</ins>
+
+This is for establishing a websocket connection with the Emojive server, allowing the client to send and receive messages for chatrooms they have joined. To join chatroom, see [Join Chatroom](#join-chatroom) above.
+
+**URL:** `/chatroom`
+
+**Method:** `WEBSOCKET`
+
+**Auth Required:** YES
 
 #### <ins>Send Chatroom Message - WebSocket</ins>
 
