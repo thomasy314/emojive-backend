@@ -10,6 +10,7 @@ import {
   createChatroomQuery,
   createChatroomUserLinkQuery,
   deleteChatroomUserLinkQuery,
+  getUsersChatroomsQuery,
 } from './chatrooms.queries';
 
 jest.mock('../../db/postgres');
@@ -143,6 +144,35 @@ describe('Chatroom Queries', () => {
       await expect(
         deleteChatroomUserLinkQuery(chatroomUUID, userUUID)
       ).rejects.toThrow('Some error');
+    });
+  });
+
+  describe('Get Users Chatrooms Query', () => {
+    test('GIVEN valid input THEN query is called with proper input', async () => {
+      // Setup
+      const queryMock = jest.mocked(query);
+
+      // Execute
+      await getUsersChatroomsQuery(userUUID);
+
+      // Validate
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith(
+        'SELECT chatrooms.chatroom_uuid FROM chatrooms JOIN chatrooms_users ON chatrooms.chatroom_id = chatrooms_users.chatroom_id JOIN users ON users.user_id = chatrooms_users.user_id WHERE users.user_uuid = $1',
+        [userUUID]
+      );
+    });
+
+    test('GIVEN query throws an error THEN error is thrown', async () => {
+      // Setup
+      const queryMock = jest.mocked(query);
+      const error = new Error('Some error');
+      queryMock.mockRejectedValueOnce(error);
+
+      // Execute & Validate
+      await expect(getUsersChatroomsQuery(userUUID)).rejects.toThrow(
+        'Some error'
+      );
     });
   });
 });

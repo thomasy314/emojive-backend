@@ -20,6 +20,7 @@ import {
   createChatroomQuery,
   createChatroomUserLinkQuery,
   deleteChatroomUserLinkQuery,
+  getUsersChatroomsQuery,
 } from './db/chatrooms.queries';
 
 jest.mock('./db/chatrooms.queries');
@@ -72,7 +73,7 @@ describe('Chatroom Service', () => {
       createKafkaAdminMock.mockResolvedValue(eventAdmin);
     });
 
-    test('Given expected chatroom input THEN new chatroom data is returned without chatroom id', async () => {
+    test('GIVEN expected chatroom input THEN new chatroom data is returned without chatroom id', async () => {
       // Setup
       const chatroomResult = givenDBChatroom();
 
@@ -106,7 +107,7 @@ describe('Chatroom Service', () => {
       );
     });
 
-    test('Given create chatroom query fails THEN error is thrown', () => {
+    test('GIVEN create chatroom query fails THEN error is thrown', () => {
       // Setup
       const createChatroomQueryMock = jest.mocked(createChatroomQuery);
       createChatroomQueryMock.mockRejectedValueOnce('Evil');
@@ -133,15 +134,13 @@ describe('Chatroom Service', () => {
   describe('Join Chatroom', () => {
     let chatroomUUID: string;
     let userUUID: string;
-    let onMessage: jest.Mock;
 
     beforeEach(() => {
       chatroomUUID = givenValidUUID();
       userUUID = givenValidUUID();
-      onMessage = jest.fn();
     });
 
-    test('Given valid chatroom and user UUIDs THEN user is added to chatroom and event handler is set', async () => {
+    test('GIVEN valid chatroom and user UUIDs THEN user is added to chatroom and event handler is set', async () => {
       // Setup
       const createChatroomUserLinkQueryMock = jest.mocked(
         createChatroomUserLinkQuery
@@ -149,7 +148,7 @@ describe('Chatroom Service', () => {
       createChatroomUserLinkQueryMock.mockResolvedValueOnce();
 
       // Execute
-      await chatroomService.joinChatroom(chatroomUUID, userUUID, onMessage);
+      await chatroomService.joinChatroom(chatroomUUID, userUUID);
 
       // Validate
       expect(createChatroomUserLinkQueryMock).toHaveBeenCalledTimes(1);
@@ -157,22 +156,9 @@ describe('Chatroom Service', () => {
         chatroomUUID,
         userUUID
       );
-
-      expect(eventLedger.addConsumer).toHaveBeenCalledTimes(1);
-      expect(eventLedger.addConsumer).toHaveBeenCalledWith(userUUID, [
-        chatroomUUID,
-      ]);
-
-      expect(eventConsumer.setEventHandler).toHaveBeenCalledTimes(1);
-      expect(eventConsumer.setEventHandler).toHaveBeenCalledWith(
-        expect.any(Function)
-      );
-
-      expect(eventLedger.addProducer).toHaveBeenCalledTimes(1);
-      expect(eventLedger.addProducer).toHaveBeenCalledWith(chatroomUUID);
     });
 
-    test('Given join chatroom query fails THEN error is thrown', async () => {
+    test('GIVEN join chatroom query fails THEN error is thrown', async () => {
       // Setup
       const createChatroomUserLinkQueryMock = jest.mocked(
         createChatroomUserLinkQuery
@@ -182,8 +168,7 @@ describe('Chatroom Service', () => {
       // Execute
       const resultPromise = chatroomService.joinChatroom(
         chatroomUUID,
-        userUUID,
-        onMessage
+        userUUID
       );
 
       // Validate
@@ -209,7 +194,7 @@ describe('Chatroom Service', () => {
       userUUID = givenValidUUID();
     });
 
-    test('Given valid chatroom and user UUIDs THEN user is removed from chatroom', async () => {
+    test('GIVEN valid chatroom and user UUIDs THEN user is removed from chatroom', async () => {
       // Setup
 
       const deleteChatroomUserLinkQueryResult = {} as QueryResult;
@@ -238,7 +223,7 @@ describe('Chatroom Service', () => {
       expect(eventLedger.removeProducer).toHaveBeenCalledWith(chatroomUUID);
     });
 
-    test('Given leave chatroom query fails THEN error is thrown', async () => {
+    test('GIVEN leave chatroom query fails THEN error is thrown', async () => {
       // Setup
       const deleteChatroomUserLinkQueryMock = jest.mocked(
         deleteChatroomUserLinkQuery
@@ -287,7 +272,7 @@ describe('Chatroom Service', () => {
       processIncomingMessageMock.mockResolvedValueOnce(processedMessage);
     });
 
-    test('Given valid chatroom and user UUIDs and message THEN event is submitted to ledger', async () => {
+    test('GIVEN valid chatroom and user UUIDs and message THEN event is submitted to ledger', async () => {
       // Setup
       eventLedger.submitEvent = jest.fn();
 
@@ -316,6 +301,147 @@ describe('Chatroom Service', () => {
           timestamp: mockDate.toISOString(),
         },
       });
+    });
+  });
+
+  describe('Get User Chatrooms', () => {
+    let userUUID: string;
+
+    beforeEach(() => {
+      userUUID = givenValidUUID();
+    });
+
+    test('GIVEN valid user UUID THEN user chatrooms are returned', async () => {
+      // Setup
+      const chatroomUUIDs = [givenValidUUID(), givenValidUUID()];
+      const getUsersChatroomsQueryMock = jest.mocked(getUsersChatroomsQuery);
+      getUsersChatroomsQueryMock.mockResolvedValueOnce({
+        rows: chatroomUUIDs.map(chatroomUUID => ({
+          chatroom_uuid: chatroomUUID,
+        })),
+      } as QueryResult);
+
+      // Execute
+      const result = await chatroomService.getUserChatrooms(userUUID);
+
+      // Validate
+      expect(result).toStrictEqual(chatroomUUIDs);
+      expect(getUsersChatroomsQueryMock).toHaveBeenCalledTimes(1);
+      expect(getUsersChatroomsQueryMock).toHaveBeenCalledWith(userUUID);
+    });
+
+    test('GIVEN get user chatrooms query fails THEN error is thrown', async () => {
+      // Setup
+      const getUsersChatroomsQueryMock = jest.mocked(getUsersChatroomsQuery);
+      getUsersChatroomsQueryMock.mockRejectedValueOnce('Evil');
+
+      // Execute
+      const resultPromise = chatroomService.getUserChatrooms(userUUID);
+
+      // Validate
+      await expect(resultPromise).rejects.toBe('Evil');
+      expect(getUsersChatroomsQueryMock).toHaveBeenCalledTimes(1);
+      expect(getUsersChatroomsQueryMock).toHaveBeenCalledWith(userUUID);
+    });
+  });
+
+  describe('Add Chatroom Message Receiver', () => {
+    let chatroomUUID: string;
+    let userUUID: string;
+    let handler: jest.Mock;
+
+    beforeEach(() => {
+      chatroomUUID = givenValidUUID();
+      userUUID = givenValidUUID();
+      handler = jest.fn();
+    });
+
+    test('GIVEN valid chatroom and user UUIDs and handler THEN handler is registered and consumer is added', async () => {
+      // Setup
+      eventLedger.addProducer = jest.fn();
+      eventLedger.addConsumer = jest.fn().mockResolvedValueOnce(eventConsumer);
+      eventLedger.registerConsumerHandler = jest.fn();
+
+      // Execute
+      await chatroomService.addChatroomMessageReceiver(
+        userUUID,
+        chatroomUUID,
+        handler
+      );
+
+      // Validate
+      expect(eventLedger.addProducer).toHaveBeenCalledTimes(1);
+      expect(eventLedger.addProducer).toHaveBeenCalledWith(chatroomUUID);
+
+      expect(eventLedger.addConsumer).toHaveBeenCalledTimes(1);
+      expect(eventLedger.addConsumer).toHaveBeenCalledWith(userUUID, [
+        chatroomUUID,
+      ]);
+
+      expect(eventLedger.registerConsumerHandler).toHaveBeenCalledTimes(1);
+      expect(eventLedger.registerConsumerHandler).toHaveBeenCalledWith(
+        userUUID,
+        handler
+      );
+    });
+
+    test('GIVEN add consumer fails THEN error is thrown', async () => {
+      // Setup
+      eventLedger.addProducer = jest.fn();
+      eventLedger.addConsumer = jest.fn().mockRejectedValueOnce('Evil');
+      eventLedger.registerConsumerHandler = jest.fn();
+
+      // Execute
+      const resultPromise = chatroomService.addChatroomMessageReceiver(
+        userUUID,
+        chatroomUUID,
+        handler
+      );
+
+      // Validate
+      await expect(resultPromise).rejects.toBe('Evil');
+
+      expect(eventLedger.addProducer).toHaveBeenCalledTimes(1);
+      expect(eventLedger.addProducer).toHaveBeenCalledWith(chatroomUUID);
+
+      expect(eventLedger.addConsumer).toHaveBeenCalledTimes(1);
+      expect(eventLedger.addConsumer).toHaveBeenCalledWith(userUUID, [
+        chatroomUUID,
+      ]);
+
+      expect(eventLedger.registerConsumerHandler).not.toHaveBeenCalled();
+    });
+
+    test('GIVEN register consumer handler fails THEN error is thrown', async () => {
+      // Setup
+      eventLedger.addProducer = jest.fn();
+      eventLedger.addConsumer = jest.fn();
+      const error = new Error('Evil');
+      eventLedger.registerConsumerHandler = jest
+        .fn()
+        .mockImplementationOnce(() => {
+          throw error;
+        });
+
+      // Execute
+      const resultPromise = chatroomService.addChatroomMessageReceiver(
+        userUUID,
+        chatroomUUID,
+        handler
+      );
+
+      // Validate
+      await expect(resultPromise).rejects.toBe(error);
+
+      expect(eventLedger.addProducer).toHaveBeenCalledTimes(1);
+      expect(eventLedger.addProducer).toHaveBeenCalledWith(chatroomUUID);
+
+      expect(eventLedger.addConsumer).toHaveBeenCalledTimes(1);
+      expect(eventLedger.addConsumer).toHaveBeenCalledWith(userUUID, [
+        chatroomUUID,
+      ]);
+
+      expect(eventLedger.registerConsumerHandler).toHaveBeenCalledTimes(1);
     });
   });
 });

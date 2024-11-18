@@ -9,6 +9,7 @@ import {
   createChatroomQuery,
   createChatroomUserLinkQuery,
   deleteChatroomUserLinkQuery,
+  getUsersChatroomsQuery,
 } from './db/chatrooms.queries';
 
 function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
@@ -36,20 +37,25 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
     };
   }
 
-  async function joinChatroom(
-    chatroomUUID: string,
-    userUUID: string,
-    onMessage: EventConsumerHandler
-  ) {
+  async function joinChatroom(chatroomUUID: string, userUUID: string) {
     await createChatroomUserLinkQuery(chatroomUUID, userUUID);
+  }
 
-    const eventConsumer = await ledger.addConsumer(userUUID, [chatroomUUID]);
+  async function getUserChatrooms(userUUID: string) {
+    const result = await getUsersChatroomsQuery(userUUID);
+    return result.rows.map(row => row.chatroom_uuid);
+  }
 
-    eventConsumer.setEventHandler(message => {
-      onMessage(message);
-    });
-
+  async function addChatroomMessageReceiver(
+    userUUID: string,
+    chatroomUUID: string,
+    handler: EventConsumerHandler
+  ) {
     ledger.addProducer(chatroomUUID);
+
+    await ledger.addConsumer(userUUID, [chatroomUUID]);
+
+    ledger.registerConsumerHandler(userUUID, handler);
   }
 
   async function receiveChatroomMessage(
@@ -92,6 +98,8 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
   return {
     createChatroom,
     joinChatroom,
+    addChatroomMessageReceiver,
+    getUserChatrooms,
     leaveChatroom,
     receiveChatroomMessage,
   };

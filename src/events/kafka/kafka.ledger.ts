@@ -2,6 +2,7 @@ import { Kafka } from 'kafkajs';
 import {
   EventBusEvent,
   EventConsumer,
+  EventConsumerHandler,
   EventLedger,
   EventProducer,
 } from '../events.types';
@@ -14,9 +15,21 @@ function createKafkaLedger(kafkaInstance: Kafka): EventLedger {
   const producersCount = new Map<string, number>();
 
   async function addConsumer(groupId: string, topics: string[]) {
-    const consumer = await createKafkaConsumer(kafkaInstance, groupId, topics);
+    const consumer =
+      consumers.get(groupId) ??
+      (await createKafkaConsumer(kafkaInstance, groupId, topics));
     consumers.set(groupId, consumer);
     return consumer;
+  }
+
+  function registerConsumerHandler(
+    groupId: string,
+    handler: EventConsumerHandler
+  ) {
+    if (!consumers.has(groupId)) {
+      throw new Error(`Consumer for group ${groupId} not found`);
+    }
+    consumers.get(groupId)!.setEventHandler(handler);
   }
 
   async function addProducer(topic: string) {
@@ -57,6 +70,7 @@ function createKafkaLedger(kafkaInstance: Kafka): EventLedger {
 
   return {
     addConsumer,
+    registerConsumerHandler,
     addProducer,
     submitEvent,
     removeConsumer,

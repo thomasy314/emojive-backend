@@ -15,26 +15,36 @@ chatroomRouter.post(
   chatroomController.createChatroom
 );
 
+chatroomRouter.post(
+  '/join',
+  // joinCharoomValidator,
+  chatroomController.joinChatroom
+);
+
 chatroomWebSocketRouter.onWebSocketConnection(
   '/',
+  chatroomController.addUserChatroomsToContext,
   joinCharoomValidator,
-  chatroomController.joinChatroom
+  chatroomController.registerUserMessageHandler
 );
 
 chatroomWebSocketRouter.onWebSocketMessage(
   '/',
+  chatroomController.addUserChatroomsToContext,
   receiveChatroomMessageValidator,
   chatroomController.receiveChatroomMessage
 );
 
 chatroomWebSocketRouter.onWebSocketClose(
   '/',
+  chatroomController.addUserChatroomsToContext,
   leaveChatroomValidator,
   chatroomController.leaveChatroom
 );
 
 chatroomWebSocketRouter.onWebSocketError(
   '/',
+  chatroomController.addUserChatroomsToContext,
   leaveChatroomValidator,
   chatroomController.leaveChatroom
 );
