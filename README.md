@@ -236,6 +236,26 @@ Registers user within a chatroom. To actually send and receive messages, they wi
 }
 ```
 
+#### <ins>Get Chatroom Messages</ins>
+
+Given a chatroom, get chatroom messages checks if the current user is a member of the chatroom and if yes returns the room's messages.
+
+**URL:** `/chatroom/messages`
+
+**Method:** `GET`
+
+**Auth Required:** YES - _User must also be a member of the given room_
+
+**Body**
+
+<ins>chatroomUUID</ins> - _string (UUID)_ : The UUID of the chatroom the user wants messages from
+
+**Example**
+
+```
+/chatroom/messages?chatroomUUID=9b2e0258-d6db-4a6f-97a6-e2204776eb01
+```
+
 #### <ins>Chatroom - WebSocket</ins>
 
 This is for establishing a websocket connection with the Emojive server, allowing the client to send and receive messages for chatrooms they have joined. To join chatroom, see [Join Chatroom](#join-chatroom) above.
@@ -273,7 +293,6 @@ The following is a high level list of items that need implementing, for more det
    1. APIS
       1. chatrooms
          1. `listChatrooms`
-         1. `getChatroomMessages` - possibly don't need depending on how Kafka config is done
       1. emojis
          1. `getEmojis` - Gets a list of emojis available to users
 1. WebSocket messages

@@ -20,9 +20,12 @@ import {
   createChatroomQuery,
   createChatroomUserLinkQuery,
   deleteChatroomUserLinkQuery,
-  getUsersChatroomsQuery,
+  getChatroomUsersQuery,
+  getUserChatroomsQuery,
 } from './db/chatrooms.queries';
 
+jest.mock('mongodb');
+jest.mock('../db/mongodb');
 jest.mock('./db/chatrooms.queries');
 jest.mock('../events/kafka/kafka.admin');
 jest.mock('../events/kafka/kafka.ledger');
@@ -304,6 +307,47 @@ describe('Chatroom Service', () => {
     });
   });
 
+  describe('Get Chatroom Users', () => {
+    let chatroomUUID: string;
+
+    beforeEach(() => {
+      chatroomUUID = givenValidUUID();
+    });
+
+    test('GIVEN valid chatroom UUID THEN chatroom users are returned', async () => {
+      // Setup
+      const userUUIDs = [givenValidUUID(), givenValidUUID()];
+      const getChatroomUsersQueryMock = jest.mocked(getChatroomUsersQuery);
+      getChatroomUsersQueryMock.mockResolvedValueOnce({
+        rows: userUUIDs.map(userUUID => ({
+          user_uuid: userUUID,
+        })),
+      } as QueryResult);
+
+      // Execute
+      const result = await chatroomService.getChatroomUsers(chatroomUUID);
+
+      // Validate
+      expect(result).toStrictEqual(userUUIDs);
+      expect(getChatroomUsersQueryMock).toHaveBeenCalledTimes(1);
+      expect(getChatroomUsersQueryMock).toHaveBeenCalledWith(chatroomUUID);
+    });
+
+    test('GIVEN get chatroom users query fails THEN error is thrown', async () => {
+      // Setup
+      const getChatroomUsersQueryMock = jest.mocked(getChatroomUsersQuery);
+      getChatroomUsersQueryMock.mockRejectedValueOnce('Evil');
+
+      // Execute
+      const resultPromise = chatroomService.getChatroomUsers(chatroomUUID);
+
+      // Validate
+      await expect(resultPromise).rejects.toBe('Evil');
+      expect(getChatroomUsersQueryMock).toHaveBeenCalledTimes(1);
+      expect(getChatroomUsersQueryMock).toHaveBeenCalledWith(chatroomUUID);
+    });
+  });
+
   describe('Get User Chatrooms', () => {
     let userUUID: string;
 
@@ -314,8 +358,8 @@ describe('Chatroom Service', () => {
     test('GIVEN valid user UUID THEN user chatrooms are returned', async () => {
       // Setup
       const chatroomUUIDs = [givenValidUUID(), givenValidUUID()];
-      const getUsersChatroomsQueryMock = jest.mocked(getUsersChatroomsQuery);
-      getUsersChatroomsQueryMock.mockResolvedValueOnce({
+      const getUserChatroomsQueryMock = jest.mocked(getUserChatroomsQuery);
+      getUserChatroomsQueryMock.mockResolvedValueOnce({
         rows: chatroomUUIDs.map(chatroomUUID => ({
           chatroom_uuid: chatroomUUID,
         })),
@@ -326,22 +370,22 @@ describe('Chatroom Service', () => {
 
       // Validate
       expect(result).toStrictEqual(chatroomUUIDs);
-      expect(getUsersChatroomsQueryMock).toHaveBeenCalledTimes(1);
-      expect(getUsersChatroomsQueryMock).toHaveBeenCalledWith(userUUID);
+      expect(getUserChatroomsQueryMock).toHaveBeenCalledTimes(1);
+      expect(getUserChatroomsQueryMock).toHaveBeenCalledWith(userUUID);
     });
 
     test('GIVEN get user chatrooms query fails THEN error is thrown', async () => {
       // Setup
-      const getUsersChatroomsQueryMock = jest.mocked(getUsersChatroomsQuery);
-      getUsersChatroomsQueryMock.mockRejectedValueOnce('Evil');
+      const getUserChatroomsQueryMock = jest.mocked(getUserChatroomsQuery);
+      getUserChatroomsQueryMock.mockRejectedValueOnce('Evil');
 
       // Execute
       const resultPromise = chatroomService.getUserChatrooms(userUUID);
 
       // Validate
       await expect(resultPromise).rejects.toBe('Evil');
-      expect(getUsersChatroomsQueryMock).toHaveBeenCalledTimes(1);
-      expect(getUsersChatroomsQueryMock).toHaveBeenCalledWith(userUUID);
+      expect(getUserChatroomsQueryMock).toHaveBeenCalledTimes(1);
+      expect(getUserChatroomsQueryMock).toHaveBeenCalledWith(userUUID);
     });
   });
 

@@ -45,7 +45,7 @@ function deleteChatroomUserLinkQuery(chatroomUUID: string, userUUID: string) {
   return query(queryText, values);
 }
 
-function getUsersChatroomsQuery(userUUId: string) {
+function getUserChatroomsQuery(userUUId: string) {
   const queryText =
     'SELECT chatrooms.chatroom_uuid FROM chatrooms JOIN chatrooms_users ON chatrooms.chatroom_id = chatrooms_users.chatroom_id JOIN users ON users.user_id = chatrooms_users.user_id WHERE users.user_uuid = $1';
 
@@ -54,9 +54,19 @@ function getUsersChatroomsQuery(userUUId: string) {
   return query(queryText, values);
 }
 
+function getChatroomUsersQuery(chatroomUUID: string) {
+  const queryText =
+    'SELECT users.user_uuid FROM chatrooms JOIN chatrooms_users ON chatrooms.chatroom_id = chatrooms_users.chatroom_id JOIN users ON users.user_id = chatrooms_users.user_id WHERE chatrooms.chatroom_uuid = $1';
+
+  const values = [chatroomUUID];
+
+  return query(queryText, values);
+}
+
 export {
   createChatroomQuery,
   createChatroomUserLinkQuery,
   deleteChatroomUserLinkQuery,
-  getUsersChatroomsQuery,
+  getChatroomUsersQuery,
+  getUserChatroomsQuery,
 };

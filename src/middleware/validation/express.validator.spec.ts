@@ -19,7 +19,7 @@ describe('createExpressValidator', () => {
     required: ['foo', 'bar'],
     additionalProperties: false,
   };
-  //   const validationFunction = ajv.compile(testSchema);
+
   const validationFunctionMock = jest.fn() as unknown as jest.MockedFunction<
     ValidateFunction<unknown>
   >;
@@ -31,22 +31,44 @@ describe('createExpressValidator', () => {
   const nextMock = jest.fn();
 
   beforeEach(() => {
-    requestMock = { body: {} };
+    requestMock = { body: {}, query: {} };
     responseMock = {};
   });
 
-  it('should call next if validation passes', async () => {
+  test('GIVEN valid input WHEN validation passes for POST method THEN call next without error', async () => {
+    // Setup
+    requestMock.method = 'POST';
     validationFunctionMock.mockReturnValue(true);
 
     const validator = createExpressValidator(validationFunctionMock);
+
+    // Execute
     await validator(requestMock as Request, responseMock as Response, nextMock);
 
+    // Validate
     expect(validationFunctionMock).toHaveBeenCalledWith(requestMock.body);
     expect(nextMock).toHaveBeenCalled();
     expect(nextMock).not.toHaveBeenCalledWith(expect.anything());
   });
 
-  it('should call next with error if validation fails', async () => {
+  test('GIVEN valid input WHEN validation passes for GET method THEN call next without error', async () => {
+    // Setup
+    requestMock.method = 'GET';
+    validationFunctionMock.mockReturnValue(true);
+
+    const validator = createExpressValidator(validationFunctionMock);
+
+    // Execute
+    await validator(requestMock as Request, responseMock as Response, nextMock);
+
+    // Validate
+    expect(validationFunctionMock).toHaveBeenCalledWith(requestMock.query);
+    expect(nextMock).toHaveBeenCalled();
+    expect(nextMock).not.toHaveBeenCalledWith(expect.anything());
+  });
+
+  test('GIVEN invalid input WHEN validation fails THEN call next with error', async () => {
+    // Setup
     const mockErrors = [{ message: 'error' }] as unknown as ErrorObject[];
     validationFunctionMock.mockReturnValue(false);
     validationFunctionMock.errors = mockErrors;
@@ -54,8 +76,11 @@ describe('createExpressValidator', () => {
     (parseErrors as jest.Mock).mockReturnValue(mockErrors);
 
     const validator = createExpressValidator(validationFunctionMock);
+
+    // Execute
     await validator(requestMock as Request, responseMock as Response, nextMock);
 
+    // Validate
     expect(validationFunctionMock).toHaveBeenCalledWith(requestMock.body);
     expect(parseErrors).toHaveBeenCalledWith(mockErrors);
 
@@ -68,13 +93,17 @@ describe('createExpressValidator', () => {
     expect(nextMock).toHaveBeenCalledWith(expectedError);
   });
 
-  it('should call next if validation fails but no errors are present', async () => {
+  test('GIVEN invalid input WHEN validation fails but no errors are present THEN call next without error', async () => {
+    // Setup
     validationFunctionMock.mockReturnValue(false);
     validationFunctionMock.errors = null;
 
     const validator = createExpressValidator(validationFunctionMock);
+
+    // Execute
     await validator(requestMock as Request, responseMock as Response, nextMock);
 
+    // Validate
     expect(validationFunctionMock).toHaveBeenCalledWith(requestMock.body);
     expect(nextMock).toHaveBeenCalled();
     expect(nextMock).not.toHaveBeenCalledWith(expect.anything());

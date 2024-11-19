@@ -10,7 +10,8 @@ import {
   createChatroomQuery,
   createChatroomUserLinkQuery,
   deleteChatroomUserLinkQuery,
-  getUsersChatroomsQuery,
+  getChatroomUsersQuery,
+  getUserChatroomsQuery,
 } from './chatrooms.queries';
 
 jest.mock('../../db/postgres');
@@ -153,7 +154,7 @@ describe('Chatroom Queries', () => {
       const queryMock = jest.mocked(query);
 
       // Execute
-      await getUsersChatroomsQuery(userUUID);
+      await getUserChatroomsQuery(userUUID);
 
       // Validate
       expect(queryMock).toHaveBeenCalledTimes(1);
@@ -170,7 +171,36 @@ describe('Chatroom Queries', () => {
       queryMock.mockRejectedValueOnce(error);
 
       // Execute & Validate
-      await expect(getUsersChatroomsQuery(userUUID)).rejects.toThrow(
+      await expect(getUserChatroomsQuery(userUUID)).rejects.toThrow(
+        'Some error'
+      );
+    });
+  });
+
+  describe('Get Chatroom Users Query', () => {
+    test('GIVEN valid input THEN query is called with proper input', async () => {
+      // Setup
+      const queryMock = jest.mocked(query);
+
+      // Execute
+      await getChatroomUsersQuery(chatroomUUID);
+
+      // Validate
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith(
+        'SELECT users.user_uuid FROM chatrooms JOIN chatrooms_users ON chatrooms.chatroom_id = chatrooms_users.chatroom_id JOIN users ON users.user_id = chatrooms_users.user_id WHERE chatrooms.chatroom_uuid = $1',
+        [chatroomUUID]
+      );
+    });
+
+    test('GIVEN query throws an error THEN error is thrown', async () => {
+      // Setup
+      const queryMock = jest.mocked(query);
+      const error = new Error('Some error');
+      queryMock.mockRejectedValueOnce(error);
+
+      // Execute & Validate
+      await expect(getChatroomUsersQuery(chatroomUUID)).rejects.toThrow(
         'Some error'
       );
     });

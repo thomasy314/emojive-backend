@@ -2,7 +2,7 @@ import {
   mongoDBMessageCollection,
   mongoDBName,
 } from '../config/mongodb.config';
-import createMongoDBConnection from '../db/mongodb';
+import createMongoConnection from '../db/mongodb';
 import kafkaEvents from '../events/kafka';
 import createKafkaConsumer from '../events/kafka/kafka.consumer';
 
@@ -19,7 +19,7 @@ async function messageSaver() {
     [ALL_TOPIC_REGEX]
   );
 
-  const mongoDB = await createMongoDBConnection(
+  const mongoDB = await createMongoConnection(
     mongoDBName,
     mongoDBMessageCollection
   );

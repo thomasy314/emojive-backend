@@ -1,6 +1,7 @@
 import { mongoClient } from '../../config/mongodb.config';
 
 type DocumentDBConnection = {
+  getItems: <T>(query: object, options?: object) => Promise<T[]>;
   saveItem: (item: object) => Promise<unknown>;
 };
 
@@ -16,7 +17,15 @@ async function createMongoConnection(
     return collection.insertOne(item);
   }
 
+  function getItems<T>(query: object, options?: object): Promise<T[]> {
+    return collection
+      .find(query, options)
+      .toArray()
+      .then(items => items as T[]);
+  }
+
   return {
+    getItems,
     saveItem,
   };
 }

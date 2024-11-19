@@ -1,5 +1,6 @@
 import { Db } from 'mongodb';
 import { mongoClient } from '../../config/mongodb.config';
+import { givenRandomString } from '../../utils/test-helpers';
 import createMongoConnection from './index';
 
 jest.mock('mongodb');
@@ -58,6 +59,56 @@ describe('MongoDB', () => {
       expect(insertOneMock).toHaveBeenCalledTimes(1);
       expect(insertOneMock).toHaveBeenCalledWith(item);
       expect(result).toEqual({ insertedId: '12345' });
+    });
+  });
+
+  describe('getItems', () => {
+    test('GIVEN valid query THEN should return the items from the collection', async () => {
+      // Setup
+      const dbName = givenRandomString();
+      const collectionName = givenRandomString();
+      const query = { name: givenRandomString() };
+      const items = [
+        { name: givenRandomString() },
+        { name: givenRandomString() },
+      ];
+      const findMock = jest.fn().mockReturnValue({
+        toArray: jest.fn().mockResolvedValue(items),
+      });
+      mongoCollectionMock.mockReturnValue({
+        find: findMock,
+      });
+
+      // Execute
+      const connection = await createMongoConnection(dbName, collectionName);
+      const result = await connection.getItems(query);
+
+      // Validate
+      expect(findMock).toHaveBeenCalledTimes(1);
+      expect(findMock).toHaveBeenCalledWith(query, undefined);
+      expect(result).toEqual(items);
+    });
+
+    test('GIVEN no query THEN should return all items from the collection', async () => {
+      // Setup
+      const dbName = 'testDB';
+      const collectionName = 'testCollection';
+      const items = [{ name: 'testItem1' }, { name: 'testItem2' }];
+      const findMock = jest.fn().mockReturnValue({
+        toArray: jest.fn().mockResolvedValue(items),
+      });
+      mongoCollectionMock.mockReturnValue({
+        find: findMock,
+      });
+
+      // Execute
+      const connection = await createMongoConnection(dbName, collectionName);
+      const result = await connection.getItems({});
+
+      // Validate
+      expect(findMock).toHaveBeenCalledTimes(1);
+      expect(findMock).toHaveBeenCalledWith({}, undefined);
+      expect(result).toEqual(items);
     });
   });
 });

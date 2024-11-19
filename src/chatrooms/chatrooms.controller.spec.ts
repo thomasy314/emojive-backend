@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import WebSocket from 'ws';
 import { EventBusEvent } from '../events/events.types';
+import { MessageEvent } from '../messages/messages.schema';
+import messagesService from '../messages/messages.service';
 import {
   givenRandomBoolean,
   givenRandomEmoji,
@@ -10,6 +12,9 @@ import {
 import chatroomController from './chatrooms.controller';
 import chatroomService from './chatrooms.service';
 
+jest.mock('mongodb');
+jest.mock('../db/mongodb');
+jest.mock('../messages/messages.service');
 jest.mock('./chatrooms.service');
 
 describe('Chatroom Controller', () => {
@@ -348,6 +353,11 @@ describe('Chatroom Controller', () => {
         chatroomUUID,
       };
 
+      const finalMessage = {
+        text: 'Hello',
+        timeStamp: Date.now(),
+      };
+
       const mockDate = new Date('2020-01-01');
       jest.useFakeTimers().setSystemTime(mockDate);
 
@@ -357,15 +367,17 @@ describe('Chatroom Controller', () => {
       addChatroomMessageReceiverMock.mockImplementationOnce(
         (userUUID, chatroomUUID, onMessage) => {
           const event = {
-            value: {
-              message: { text: 'Hello' },
-              timestamp: Date.now(),
-            },
+            value: finalMessage,
           } as EventBusEvent;
           onMessage(event);
           return Promise.resolve();
         }
       );
+
+      const extractUserVisibleMessageContentMock = jest.mocked(
+        messagesService.extractUserVisibleMessageContent
+      );
+      extractUserVisibleMessageContentMock.mockReturnValueOnce(finalMessage);
 
       // Execute
       await chatroomController.registerUserMessageHandler(
@@ -376,12 +388,7 @@ describe('Chatroom Controller', () => {
 
       // Validate
       expect(socket.send).toHaveBeenCalledTimes(1);
-      expect(socket.send).toHaveBeenCalledWith(
-        JSON.stringify({
-          text: 'Hello',
-          timeStamp: Date.now(),
-        })
-      );
+      expect(socket.send).toHaveBeenCalledWith(JSON.stringify(finalMessage));
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith();
@@ -618,6 +625,132 @@ describe('Chatroom Controller', () => {
         userUUID,
         { messageType: 'leave' }
       );
+
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith('Evil');
+    });
+  });
+
+  describe('Get Chatroom Messages', () => {
+    test('GIVEN valid chatroom UUID and user is a member THEN returns chatroom messages', async () => {
+      // Setup
+      const request: Request = {
+        query: {
+          chatroomUUID,
+        },
+        headers: {
+          authorization: `Token ${userUUID}`,
+        },
+      } as unknown as Request;
+
+      const responseMessages = [
+        {
+          message: { text: 'Hello' },
+          chatroomUUID,
+          userUUID,
+          timestamp: new Date().toISOString(),
+        },
+        {
+          message: { text: 'World' },
+          chatroomUUID,
+          userUUID,
+          timestamp: new Date().toISOString(),
+        },
+      ] as MessageEvent[];
+
+      const getChatroomUsersMock = jest.mocked(
+        chatroomService.getChatroomUsers
+      );
+      getChatroomUsersMock.mockResolvedValueOnce([userUUID]);
+
+      const getChatroomMessagesMock = jest.mocked(
+        messagesService.getChatroomMessages
+      );
+      getChatroomMessagesMock.mockResolvedValueOnce(responseMessages);
+
+      const extractUserVisibleMessageContentMock = jest.mocked(
+        messagesService.extractUserVisibleMessageContent
+      );
+      extractUserVisibleMessageContentMock.mockImplementation(msg => msg);
+
+      // Execute
+      await chatroomController.getChatroomMessages(request, response, next);
+
+      // Validate
+      expect(getChatroomUsersMock).toHaveBeenCalledTimes(1);
+      expect(getChatroomUsersMock).toHaveBeenCalledWith(chatroomUUID);
+
+      expect(getChatroomMessagesMock).toHaveBeenCalledTimes(1);
+      expect(getChatroomMessagesMock).toHaveBeenCalledWith(chatroomUUID);
+
+      expect(response.send).toHaveBeenCalledTimes(1);
+      expect(response.send).toHaveBeenCalledWith(responseMessages);
+
+      expect(next).toHaveBeenCalledTimes(0);
+    });
+
+    test('GIVEN user is not a member of chatroom THEN next function is called with error', async () => {
+      // Setup
+      const request: Request = {
+        query: {
+          chatroomUUID,
+        },
+        headers: {
+          authorization: `Token ${userUUID}`,
+        },
+      } as unknown as Request;
+
+      const getChatroomUsersMock = jest.mocked(
+        chatroomService.getChatroomUsers
+      );
+      getChatroomUsersMock.mockResolvedValueOnce([]);
+
+      // Execute
+      await chatroomController.getChatroomMessages(request, response, next);
+
+      // Validate
+      expect(getChatroomUsersMock).toHaveBeenCalledTimes(1);
+      expect(getChatroomUsersMock).toHaveBeenCalledWith(chatroomUUID);
+
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith({
+        status: 403,
+        error: new Error(
+          `User [${userUUID}] is not a member of chatroom [${chatroomUUID}] `
+        ),
+      });
+    });
+
+    test('GIVEN error occurs while fetching chatroom messages THEN next function is called', async () => {
+      // Setup
+      const request: Request = {
+        query: {
+          chatroomUUID,
+        },
+        headers: {
+          authorization: `Token ${userUUID}`,
+        },
+      } as unknown as Request;
+
+      const getChatroomUsersMock = jest.mocked(
+        chatroomService.getChatroomUsers
+      );
+      getChatroomUsersMock.mockResolvedValueOnce([userUUID]);
+
+      const getChatroomMessagesMock = jest.mocked(
+        messagesService.getChatroomMessages
+      );
+      getChatroomMessagesMock.mockRejectedValueOnce('Evil');
+
+      // Execute
+      await chatroomController.getChatroomMessages(request, response, next);
+
+      // Validate
+      expect(getChatroomUsersMock).toHaveBeenCalledTimes(1);
+      expect(getChatroomUsersMock).toHaveBeenCalledWith(chatroomUUID);
+
+      expect(getChatroomMessagesMock).toHaveBeenCalledTimes(1);
+      expect(getChatroomMessagesMock).toHaveBeenCalledWith(chatroomUUID);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith('Evil');
