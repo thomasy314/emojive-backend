@@ -22,6 +22,7 @@ import {
   deleteChatroomUserLinkQuery,
   getChatroomUsersQuery,
   getUserChatroomsQuery,
+  listChatroomsQuery,
 } from './db/chatrooms.queries';
 
 jest.mock('mongodb');
@@ -486,6 +487,54 @@ describe('Chatroom Service', () => {
       ]);
 
       expect(eventLedger.registerConsumerHandler).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('List Chatrooms', () => {
+    test('GIVEN chatrooms exist THEN chatrooms are returned', async () => {
+      // Setup
+      const chatrooms = [
+        {
+          chatroom_uuid: givenValidUUID(),
+          chatroom_name: givenRandomEmoji(),
+          max_occupancy: givenRandomInt(20),
+        },
+        {
+          chatroom_uuid: givenValidUUID(),
+          chatroom_name: givenRandomEmoji(),
+          max_occupancy: givenRandomInt(20),
+        },
+      ];
+      const listChatroomsQueryMock = jest.mocked(listChatroomsQuery);
+      listChatroomsQueryMock.mockResolvedValueOnce({
+        rows: chatrooms,
+      } as QueryResult);
+
+      // Execute
+      const result = await chatroomService.listChatrooms();
+
+      // Validate
+      expect(result).toStrictEqual(
+        chatrooms.map(chatroom => ({
+          chatroomUUID: chatroom.chatroom_uuid,
+          chatroomName: chatroom.chatroom_name,
+          maxOccupancy: chatroom.max_occupancy,
+        }))
+      );
+      expect(listChatroomsQueryMock).toHaveBeenCalledTimes(1);
+    });
+
+    test('GIVEN list chatrooms query fails THEN error is thrown', async () => {
+      // Setup
+      const listChatroomsQueryMock = jest.mocked(listChatroomsQuery);
+      listChatroomsQueryMock.mockRejectedValueOnce('Evil');
+
+      // Execute
+      const resultPromise = chatroomService.listChatrooms();
+
+      // Validate
+      await expect(resultPromise).rejects.toBe('Evil');
+      expect(listChatroomsQueryMock).toHaveBeenCalledTimes(1);
     });
   });
 });

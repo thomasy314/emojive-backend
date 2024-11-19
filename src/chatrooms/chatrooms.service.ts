@@ -11,6 +11,7 @@ import {
   deleteChatroomUserLinkQuery,
   getChatroomUsersQuery,
   getUserChatroomsQuery,
+  listChatroomsQuery,
 } from './db/chatrooms.queries';
 
 function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
@@ -91,6 +92,17 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
     ledger.submitEvent(chatroomUUID, eventBusMessage);
   }
 
+  async function listChatrooms() {
+    const result = await listChatroomsQuery();
+    const chatrooms = result.rows;
+
+    return chatrooms.map(chatroom => ({
+      chatroomUUID: chatroom.chatroom_uuid,
+      chatroomName: chatroom.chatroom_name,
+      maxOccupancy: chatroom.max_occupancy,
+    }));
+  }
+
   async function leaveChatroom(
     chatroomUUID: string,
     userUUID: string
@@ -109,6 +121,7 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
     getUserChatrooms,
     leaveChatroom,
     emitChatroomMessage,
+    listChatrooms,
   };
 }
 

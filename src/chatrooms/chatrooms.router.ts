@@ -29,6 +29,12 @@ chatroomRouter.get(
   chatroomController.getChatroomMessages
 );
 
+chatroomRouter.get(
+  '/',
+  // getChatroomMessagesValidator,
+  chatroomController.listChatrooms
+);
+
 chatroomWebSocketRouter.onWebSocketConnection(
   '/',
   chatroomWebsocketValidator,
