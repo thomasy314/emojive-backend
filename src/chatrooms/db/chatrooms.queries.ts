@@ -63,10 +63,17 @@ function getChatroomUsersQuery(chatroomUUID: string) {
   return query(queryText, values);
 }
 
+function listChatroomsQuery() {
+  const queryText = 'SELECT * FROM chatrooms WHERE is_public = true';
+
+  return query(queryText);
+}
+
 export {
   createChatroomQuery,
   createChatroomUserLinkQuery,
   deleteChatroomUserLinkQuery,
   getChatroomUsersQuery,
   getUserChatroomsQuery,
+  listChatroomsQuery,
 };

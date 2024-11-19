@@ -72,6 +72,19 @@ function chatroomController() {
       .catch(next);
   };
 
+  const listChatrooms: RequestHandler = async (
+    request,
+    response,
+    next
+  ): Promise<void> => {
+    return chatroomService
+      .listChatrooms()
+      .then(chatrooms => {
+        response.send(chatrooms);
+      })
+      .catch(next);
+  };
+
   const addUserChatroomsToContext: WebSocketRouterFunction = async (
     socket,
     context,
@@ -194,6 +207,7 @@ function chatroomController() {
     createChatroom,
     joinChatroom,
     getChatroomMessages,
+    listChatrooms,
     addUserChatroomsToContext,
     registerUserMessageHandler,
     emitUserJoinedChatroomMessage,

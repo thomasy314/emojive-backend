@@ -756,4 +756,59 @@ describe('Chatroom Controller', () => {
       expect(next).toHaveBeenCalledWith('Evil');
     });
   });
+
+  describe('List Chatrooms', () => {
+    test('GIVEN request to list chatrooms THEN returns list of chatrooms', async () => {
+      // Setup
+      const request: Request = {} as Request;
+
+      const chatrooms = [
+        {
+          chatroomUUID: givenValidUUID(),
+          chatroomName: 'Chatroom 1',
+          maxOccupancy: 2,
+        },
+        {
+          chatroomUUID: givenValidUUID(),
+          chatroomName: 'Chatroom 2',
+          maxOccupancy: 5,
+        },
+      ];
+
+      const listChatroomsMock = jest.mocked(chatroomService.listChatrooms);
+      listChatroomsMock.mockResolvedValueOnce(chatrooms);
+
+      // Execute
+      await chatroomController.listChatrooms(request, response, next);
+
+      // Validate
+      expect(listChatroomsMock).toHaveBeenCalledTimes(1);
+      expect(response.send).toHaveBeenCalledTimes(1);
+      expect(response.send).toHaveBeenCalledWith(chatrooms);
+      expect(next).toHaveBeenCalledTimes(0);
+    });
+
+    test('GIVEN error occurs while listing chatrooms THEN next function is called', async () => {
+      // Setup
+      const request: Request = {
+        query: {
+          chatroomUUID,
+        },
+        headers: {
+          authorization: `Token ${userUUID}`,
+        },
+      } as unknown as Request;
+
+      const listChatroomsMock = jest.mocked(chatroomService.listChatrooms);
+      listChatroomsMock.mockRejectedValueOnce('Evil');
+
+      // Execute
+      await chatroomController.listChatrooms(request, response, next);
+
+      // Validate
+      expect(listChatroomsMock).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith('Evil');
+    });
+  });
 });

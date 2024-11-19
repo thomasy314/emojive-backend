@@ -12,6 +12,7 @@ import {
   deleteChatroomUserLinkQuery,
   getChatroomUsersQuery,
   getUserChatroomsQuery,
+  listChatroomsQuery,
 } from './chatrooms.queries';
 
 jest.mock('../../db/postgres');
@@ -203,6 +204,32 @@ describe('Chatroom Queries', () => {
       await expect(getChatroomUsersQuery(chatroomUUID)).rejects.toThrow(
         'Some error'
       );
+    });
+  });
+
+  describe('List Chatrooms Query', () => {
+    test('GIVEN valid input THEN query is called with proper input', async () => {
+      // Setup
+      const queryMock = jest.mocked(query);
+
+      // Execute
+      await listChatroomsQuery();
+
+      // Validate
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith(
+        'SELECT * FROM chatrooms WHERE is_public = true'
+      );
+    });
+
+    test('GIVEN query throws an error THEN error is thrown', async () => {
+      // Setup
+      const queryMock = jest.mocked(query);
+      const error = new Error('Some error');
+      queryMock.mockRejectedValueOnce(error);
+
+      // Execute & Validate
+      await expect(listChatroomsQuery()).rejects.toThrow('Some error');
     });
   });
 });
