@@ -3,6 +3,7 @@ import authService from '../auth/auth.service';
 import { catchAsyncError } from '../errorHandling/catch-error';
 import { EventBusEvent } from '../events/events.types';
 import { MessageEvent, MessageSchema } from '../messages/messages.schema';
+import messagesService from '../messages/messages.service';
 import { WebSocketRouterFunction } from '../websocket/websocket-middleware-handler';
 import chatroomService from './chatrooms.service';
 import { ChatroomWebSocketSchema } from './validation/chatroom-websocket.schema';
@@ -36,6 +37,37 @@ function chatroomController() {
       .joinChatroom(chatroomUUID, userUUID)
       .then(() => {
         response.status(201).send();
+      })
+      .catch(next);
+  };
+
+  const getChatroomMessages: RequestHandler = async (
+    request,
+    response,
+    next
+  ): Promise<void> => {
+    const { chatroomUUID } = request.query as { chatroomUUID: string };
+    const userUUID = authService.getAuthToken(request.headers);
+
+    const chatroomUsers = await chatroomService.getChatroomUsers(chatroomUUID);
+
+    if (!chatroomUsers.includes(userUUID)) {
+      next({
+        status: 403,
+        error: new Error(
+          `User [${userUUID}] is not a member of chatroom [${chatroomUUID}] `
+        ),
+      });
+      return;
+    }
+
+    return messagesService
+      .getChatroomMessages(chatroomUUID)
+      .then(messages =>
+        messages.map(messagesService.extractUserVisibleMessageContent)
+      )
+      .then(messages => {
+        response.send(messages);
       })
       .catch(next);
   };
@@ -84,12 +116,10 @@ function chatroomController() {
     const onMessage = (event: EventBusEvent) => {
       const eventValue = event.value as MessageEvent;
 
-      const outgoing = {
-        ...eventValue.message,
-        timeStamp: eventValue.timestamp,
-      };
+      const outGoing =
+        messagesService.extractUserVisibleMessageContent(eventValue);
 
-      socket.send(JSON.stringify(outgoing));
+      socket.send(JSON.stringify(outGoing));
     };
 
     await chatroomService
@@ -163,6 +193,7 @@ function chatroomController() {
   return {
     createChatroom,
     joinChatroom,
+    getChatroomMessages,
     addUserChatroomsToContext,
     registerUserMessageHandler,
     emitUserJoinedChatroomMessage,
