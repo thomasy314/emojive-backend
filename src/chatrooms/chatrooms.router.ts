@@ -36,6 +36,13 @@ chatroomRouter.get(
   chatroomController.listChatrooms
 );
 
+chatroomRouter.delete(
+  '/leave',
+  leaveChatroomValidator,
+  chatroomController.leaveChatroom,
+  chatroomController.emitUserLeftChatroomMessage
+);
+
 chatroomWebSocketRouter.onWebSocketConnection(
   '/',
   chatroomWebsocketValidator,
@@ -49,22 +56,6 @@ chatroomWebSocketRouter.onWebSocketMessage(
   receiveChatroomMessageValidator,
   chatroomController.addUserChatroomsToContext,
   chatroomController.receiveChatroomMessage
-);
-
-chatroomWebSocketRouter.onWebSocketClose(
-  '/',
-  leaveChatroomValidator,
-  chatroomController.addUserChatroomsToContext,
-  chatroomController.leaveChatroom,
-  chatroomController.emitUserLeftChatroomMessage
-);
-
-chatroomWebSocketRouter.onWebSocketError(
-  '/',
-  leaveChatroomValidator,
-  chatroomController.addUserChatroomsToContext,
-  chatroomController.leaveChatroom,
-  chatroomController.emitUserLeftChatroomMessage
 );
 
 export { chatroomRouter, chatroomWebSocketRouter };

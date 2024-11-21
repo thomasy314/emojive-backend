@@ -7,7 +7,9 @@ function createExpressValidator(
   validateFunction: ValidateFunction
 ): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const input = req.method === 'GET' ? req.query : req.body;
+    const methodNeedsQueryParams =
+      req.method === 'GET' || req.method === 'DELETE';
+    const input = methodNeedsQueryParams ? req.query : req.body;
     const isValid = validateFunction(input);
     if (!isValid && validateFunction.errors) {
       // If schema validation failed and error occurred return with formatted error message
