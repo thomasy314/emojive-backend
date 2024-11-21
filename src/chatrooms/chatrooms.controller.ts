@@ -5,10 +5,10 @@ import { EventBusEvent } from '../events/events.types';
 import ProducerNotFoundError from '../events/kafka/errors/producer-not-found.error';
 import { MessageEvent, MessageSchema } from '../messages/messages.schema';
 import messagesService from '../messages/messages.service';
+import webSocketCloseCode from '../websocket/websocket-close-codes';
 import { WebSocketRouterFunction } from '../websocket/websocket-middleware-handler';
 import chatroomService from './chatrooms.service';
 import { ChatroomWebSocketSchema } from './validation/chatroom-websocket.schema';
-import { LeaveChatroomSchema } from './validation/leave-chatroom.schema';
 
 function chatroomController() {
   const createChatroom: RequestHandler = (
@@ -103,7 +103,10 @@ function chatroomController() {
     }
 
     if (chatrooms.length === 0) {
-      next({ error: new Error('User is not part of any chatrooms') });
+      next({
+        status: webSocketCloseCode.POLICY_VIOLATION,
+        error: new Error('User is not part of any chatrooms'),
+      });
       return;
     }
 
@@ -159,24 +162,27 @@ function chatroomController() {
       .catch(next);
   };
 
-  const emitUserLeftChatroomMessage: WebSocketRouterFunction = (
-    socket,
-    context,
+  const emitUserLeftChatroomMessage: RequestHandler = (
+    request,
+    response,
     next
   ): Promise<void> => {
-    const { userUUID } = context as ChatroomWebSocketSchema;
-    const { chatroomUUID } = context as { chatroomUUID: string };
+    const userUUID = authService.getAuthToken(request.headers);
+    const { chatroomUUID } = request.query as { chatroomUUID: string };
 
-    const userJoinedMessage: MessageSchema = {
+    const userLeftMessage: MessageSchema = {
       messageType: 'leave',
     };
 
     return chatroomService
-      .emitChatroomMessage(chatroomUUID, userUUID, userJoinedMessage)
+      .emitChatroomMessage(chatroomUUID, userUUID, userLeftMessage)
+      .then(() => next())
       .catch(error => {
         if (!(error instanceof ProducerNotFoundError)) {
           next(error);
+          return;
         }
+        next();
       });
   };
 
@@ -196,13 +202,16 @@ function chatroomController() {
       .catch(next);
   };
 
-  const leaveChatroom: WebSocketRouterFunction = (socket, context, next) => {
-    const { userUUID } = context as LeaveChatroomSchema;
-    const { chatroomUUID } = context as { chatroomUUID: string };
+  const leaveChatroom: RequestHandler = (request, response, next) => {
+    const userUUID = authService.getAuthToken(request.headers);
+    const { chatroomUUID } = request.query as { chatroomUUID: string };
 
     return chatroomService
       .leaveChatroom(chatroomUUID, userUUID)
-      .then(() => next())
+      .then(() => {
+        response.status(204).send();
+        next();
+      })
       .catch(next);
   };
 

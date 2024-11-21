@@ -1,18 +1,16 @@
 import { JSONSchemaType } from 'ajv';
 import ajv from '../../middleware/validation/ajv';
 import { VALIDATION_ERRORS } from '../../middleware/validation/error-messages';
-import createWebSocketValidator, {
-  getConnectionUserUUIDContextData,
-} from '../../websocket/websocket.validator';
+import createExpressValidator from '../../middleware/validation/express.validator';
 
 type LeaveChatroomSchema = {
-  userUUID: string;
+  chatroomUUID: string;
 };
 
 const leaveChatroomSchema: JSONSchemaType<LeaveChatroomSchema> = {
   type: 'object',
   properties: {
-    userUUID: {
+    chatroomUUID: {
       type: 'string',
       format: 'uuid',
       nullable: false,
@@ -22,17 +20,13 @@ const leaveChatroomSchema: JSONSchemaType<LeaveChatroomSchema> = {
       },
     },
   },
-
-  required: ['userUUID'],
-  additionalProperties: true,
+  required: ['chatroomUUID'],
+  additionalProperties: false,
 };
 
-const validateCreateChatroom = ajv.compile(leaveChatroomSchema);
+const validateLeaveChatroom = ajv.compile(leaveChatroomSchema);
 
-const leaveChatroomValidator = createWebSocketValidator(
-  validateCreateChatroom,
-  getConnectionUserUUIDContextData
-);
+const leaveChatroomValidator = createExpressValidator(validateLeaveChatroom);
 
 export { leaveChatroomValidator };
 export type { LeaveChatroomSchema };

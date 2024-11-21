@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import WebSocket from 'ws';
 import { EventBusEvent } from '../events/events.types';
+import ProducerNotFoundError from '../events/kafka/errors/producer-not-found.error';
 import { MessageEvent } from '../messages/messages.schema';
 import messagesService from '../messages/messages.service';
 import {
@@ -9,6 +10,7 @@ import {
   givenRandomInt,
   givenValidUUID,
 } from '../utils/test-helpers';
+import webSocketCloseCode from '../websocket/websocket-close-codes';
 import chatroomController from './chatrooms.controller';
 import chatroomService from './chatrooms.service';
 
@@ -31,6 +33,7 @@ describe('Chatroom Controller', () => {
   beforeEach(() => {
     response = {} as Response;
     response.send = jest.fn();
+    response.status = jest.fn().mockReturnThis();
 
     next = jest.fn();
 
@@ -160,6 +163,7 @@ describe('Chatroom Controller', () => {
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith({
+        status: webSocketCloseCode.POLICY_VIOLATION,
         error: new Error('User is not part of any chatrooms'),
       });
     });
@@ -457,21 +461,27 @@ describe('Chatroom Controller', () => {
   describe('Leave Chatroom', () => {
     test('GIVEN chatroom and user UUIDs THEN chatroom service is called', async () => {
       // Setup
-      const socket = {} as WebSocket;
-      const context = {
-        chatroomUUID,
-        userUUID,
-      };
+      const request: Request = {
+        query: {
+          chatroomUUID,
+        },
+        headers: {
+          authorization: `Token ${userUUID}`,
+        },
+      } as unknown as Request;
 
       const leaveChatroomMock = jest.mocked(chatroomService.leaveChatroom);
       leaveChatroomMock.mockResolvedValueOnce();
 
       // Execute
-      await chatroomController.leaveChatroom(socket, context, next);
+      await chatroomController.leaveChatroom(request, response, next);
 
       // Validate
       expect(leaveChatroomMock).toHaveBeenCalledTimes(1);
       expect(leaveChatroomMock).toHaveBeenCalledWith(chatroomUUID, userUUID);
+
+      expect(response.status).toHaveBeenCalledTimes(1);
+      expect(response.status).toHaveBeenCalledWith(204);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith();
@@ -479,22 +489,26 @@ describe('Chatroom Controller', () => {
 
     test('GIVEN error occurs while leaving chatroom THEN next function is called', async () => {
       // Setup
-
-      const socket = {} as WebSocket;
-      const context = {
-        chatroomUUID,
-        userUUID,
-      };
+      const request: Request = {
+        query: {
+          chatroomUUID,
+        },
+        headers: {
+          authorization: `Token ${userUUID}`,
+        },
+      } as unknown as Request;
 
       const leaveChatroomMock = jest.mocked(chatroomService.leaveChatroom);
       leaveChatroomMock.mockRejectedValueOnce('Evil');
 
       // Execute
-      await chatroomController.leaveChatroom(socket, context, next);
+      await chatroomController.leaveChatroom(request, response, next);
 
       // Validate
       expect(leaveChatroomMock).toHaveBeenCalledTimes(1);
       expect(leaveChatroomMock).toHaveBeenCalledWith(chatroomUUID, userUUID);
+
+      expect(response.status).toHaveBeenCalledTimes(0);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith('Evil');
@@ -569,11 +583,14 @@ describe('Chatroom Controller', () => {
   describe('Emit User Left Chatroom Message', () => {
     test('GIVEN user UUID and chatroom UUID THEN chatroom service is called', async () => {
       // Setup
-      const socket = {} as WebSocket;
-      const context = {
-        userUUID,
-        chatroomUUID,
-      };
+      const request: Request = {
+        query: {
+          chatroomUUID,
+        },
+        headers: {
+          authorization: `Token ${userUUID}`,
+        },
+      } as unknown as Request;
 
       const emitChatroomMessageMock = jest.mocked(
         chatroomService.emitChatroomMessage
@@ -582,8 +599,8 @@ describe('Chatroom Controller', () => {
 
       // Execute
       await chatroomController.emitUserLeftChatroomMessage(
-        socket,
-        context,
+        request,
+        response,
         next
       );
 
@@ -595,16 +612,19 @@ describe('Chatroom Controller', () => {
         { messageType: 'leave' }
       );
 
-      expect(next).toHaveBeenCalledTimes(0);
+      expect(next).toHaveBeenCalledTimes(1);
     });
 
     test('GIVEN error occurs while emitting leave message THEN next function is called', async () => {
       // Setup
-      const socket = {} as WebSocket;
-      const context = {
-        userUUID,
-        chatroomUUID,
-      };
+      const request: Request = {
+        query: {
+          chatroomUUID,
+        },
+        headers: {
+          authorization: `Token ${userUUID}`,
+        },
+      } as unknown as Request;
 
       const emitChatroomMessageMock = jest.mocked(
         chatroomService.emitChatroomMessage
@@ -613,8 +633,8 @@ describe('Chatroom Controller', () => {
 
       // Execute
       await chatroomController.emitUserLeftChatroomMessage(
-        socket,
-        context,
+        request,
+        response,
         next
       );
 
@@ -628,6 +648,43 @@ describe('Chatroom Controller', () => {
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith('Evil');
+    });
+
+    test('GIVEN a ProducerNotFoundError occurs while emitting leave message THEN next function is called with no error', async () => {
+      // Setup
+      const request: Request = {
+        query: {
+          chatroomUUID,
+        },
+        headers: {
+          authorization: `Token ${userUUID}`,
+        },
+      } as unknown as Request;
+
+      const emitChatroomMessageMock = jest.mocked(
+        chatroomService.emitChatroomMessage
+      );
+      emitChatroomMessageMock.mockRejectedValueOnce(
+        new ProducerNotFoundError('Evil')
+      );
+
+      // Execute
+      await chatroomController.emitUserLeftChatroomMessage(
+        request,
+        response,
+        next
+      );
+
+      // Validate
+      expect(emitChatroomMessageMock).toHaveBeenCalledTimes(1);
+      expect(emitChatroomMessageMock).toHaveBeenCalledWith(
+        chatroomUUID,
+        userUUID,
+        { messageType: 'leave' }
+      );
+
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith();
     });
   });
 
