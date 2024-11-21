@@ -1,4 +1,5 @@
 import { Kafka } from 'kafkajs';
+import { catchAsyncError } from '../errorHandling/catch-error';
 import { EventBusEvent, EventConsumerHandler } from '../events/events.types';
 import kafkaEvents from '../events/kafka';
 import createKafkaAdmin from '../events/kafka/kafka.admin';
@@ -58,6 +59,7 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
     chatroomUUID: string,
     handler: EventConsumerHandler
   ) {
+    console.log('Adding chatroom message receiver', userUUID, chatroomUUID);
     ledger.addProducer(chatroomUUID);
 
     await ledger.addConsumer(userUUID, [chatroomUUID]);
@@ -89,7 +91,13 @@ function chatroomService(kafka: Kafka, ledger = createKafkaLedger(kafka)) {
       },
     };
 
-    ledger.submitEvent(chatroomUUID, eventBusMessage);
+    const [error] = await catchAsyncError(() =>
+      ledger.submitEvent(chatroomUUID, eventBusMessage)
+    );
+
+    if (error) {
+      throw error;
+    }
   }
 
   async function listChatrooms() {

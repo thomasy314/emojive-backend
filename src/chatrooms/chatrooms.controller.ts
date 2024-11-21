@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import authService from '../auth/auth.service';
 import { catchAsyncError } from '../errorHandling/catch-error';
 import { EventBusEvent } from '../events/events.types';
+import ProducerNotFoundError from '../events/kafka/errors/producer-not-found.error';
 import { MessageEvent, MessageSchema } from '../messages/messages.schema';
 import messagesService from '../messages/messages.service';
 import { WebSocketRouterFunction } from '../websocket/websocket-middleware-handler';
@@ -166,15 +167,17 @@ function chatroomController() {
     const { userUUID } = context as ChatroomWebSocketSchema;
     const { chatroomUUID } = context as { chatroomUUID: string };
 
-    console.log('User left chatroom', userUUID, chatroomUUID);
-
     const userJoinedMessage: MessageSchema = {
       messageType: 'leave',
     };
 
     return chatroomService
       .emitChatroomMessage(chatroomUUID, userUUID, userJoinedMessage)
-      .catch(next);
+      .catch(error => {
+        if (!(error instanceof ProducerNotFoundError)) {
+          next(error);
+        }
+      });
   };
 
   const receiveChatroomMessage: WebSocketRouterFunction = (

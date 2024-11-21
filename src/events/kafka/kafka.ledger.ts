@@ -6,6 +6,7 @@ import {
   EventLedger,
   EventProducer,
 } from '../events.types';
+import ProducerNotFoundError from './errors/producer-not-found.error';
 import createKafkaConsumer from './kafka.consumer';
 import createKafkaProducer from './kakfa.producer';
 
@@ -43,7 +44,7 @@ function createKafkaLedger(kafkaInstance: Kafka): EventLedger {
 
   async function submitEvent(topic: string, message: EventBusEvent) {
     if (!producers.has(topic)) {
-      throw new Error(`Producer for topic ${topic} not found`);
+      throw new ProducerNotFoundError(topic);
     }
     const producer = producers.get(topic);
     if (producer) {
