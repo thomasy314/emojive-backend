@@ -24,9 +24,9 @@ const joinChatroomSchema: JSONSchemaType<JoinChatroomSchema> = {
   additionalProperties: false,
 };
 
-const validateCreateChatroom = ajv.compile(joinChatroomSchema);
+const validateJoinChatroom = ajv.compile(joinChatroomSchema);
 
-const joinCharoomValidator = createExpressValidator(validateCreateChatroom);
+const joinCharoomValidator = createExpressValidator(validateJoinChatroom);
 
 export { joinCharoomValidator };
 export type { JoinChatroomSchema };

@@ -6,6 +6,7 @@ import { createCharoomValidator } from './validation/create-chatroom.schema';
 import { getChatroomMessagesValidator } from './validation/get-chatroom-messages.schema';
 import { joinCharoomValidator } from './validation/join-chatroom.schema';
 import { leaveChatroomValidator } from './validation/leave-chatroom.schema';
+import { listChatroomsValidator } from './validation/list-chatrooms.schema';
 import { receiveChatroomMessageValidator } from './validation/receive-chatroom-message.schema';
 
 const chatroomRouter = Router();
@@ -31,7 +32,7 @@ chatroomRouter.get(
 
 chatroomRouter.get(
   '/',
-  // getChatroomMessagesValidator,
+  listChatroomsValidator,
   chatroomController.listChatrooms
 );
 
