@@ -306,6 +306,31 @@ describe('Chatroom Service', () => {
         },
       });
     });
+
+    test('GIVEN ledger submit event fails THEN error is thrown', async () => {
+      // Setup
+      eventLedger.submitEvent = jest.fn().mockRejectedValueOnce('Evil');
+
+      // Execute
+      const resultPromise = chatroomService.emitChatroomMessage(
+        chatroomUUID,
+        userUUID,
+        message
+      );
+
+      // Validate
+      await expect(resultPromise).rejects.toStrictEqual(Error('Evil'));
+      expect(eventLedger.submitEvent).toHaveBeenCalledTimes(1);
+      expect(eventLedger.submitEvent).toHaveBeenCalledWith(chatroomUUID, {
+        key: expect.any(String),
+        value: {
+          message: processedMessage,
+          chatroomUUID,
+          userUUID,
+          timestamp: expect.any(String),
+        },
+      });
+    });
   });
 
   describe('Get Chatroom Users', () => {
